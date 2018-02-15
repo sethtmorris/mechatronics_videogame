@@ -10,8 +10,8 @@ CON
   data1=6
   data2=7
   'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
-  MarioTop=0                                        'Refer to sprite number 0 as "MarioTop"
-  MarioBottom=1                                     'Refer to sprite number 1 as "MarioBottom" 
+  PlayerTop=0                                        'Refer to sprite number 0 as "PlayerTop"
+  PlayerBottom=1                                     'Refer to sprite number 1 as "PlayerBottom" 
   Goomba=3                                          'Refer to sprite number 3 as "Goomba"
   Qmark1=4                                          'Refer to sprite number 4 as "Qmark1" 
   Qmark2=5                                          'Refer to sprite number 5 as "Qmark2" 
@@ -25,84 +25,84 @@ OBJ
 VAR
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)
   byte C1buttons, C2buttons                                         'These variables are used to store the button states of the two NES controllers
-  long x, y, MarioRot, GoombaPos, GoombaRot                         'Use x and y to store sprite number 1's (MarioBottom's) position coordinates, MarioRot to store sprite number 0's rotation orrientation, GoombaPos to store sprite number 3's (Goomba's) position, and GoombaRot to store sprite number 3's rotation orrientation
+  long x, y, PlayerRot, GoombaPos, GoombaRot                         'Use x and y to store sprite number 1's (PlayerBottom's) position coordinates, PlayerRot to store sprite number 0's rotation orrientation, GoombaPos to store sprite number 3's (Goomba's) position, and GoombaRot to store sprite number 3's rotation orrientation
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start. 
                      
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
-  SuperMarioBackground                                              'Call the "SuperMarioBackground" method (below) then return here and run the next line
+  SuperPlayerBackground                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
   VideoGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
   
 PUB VideoGame | i                                                   'This is the main public method for this program
   GoombaPos:=295                                                    'Start the Goomba with its X position at 295
   Move(Goomba,1,12,GoombaPos,256)                                   'Move Goomba sprite, which we've assigned to sprite number 3 (and which is displaying the image from sprite section=1, sprite number=12) to x=295 y=256  Move(SpriteNumber,SpriteSection,SpriteImage,Xposition,Yposition)                                                                
-  Move(Qmark1,1,0,120,208)                                          'Add in the question mark sprites from Sprite Section 1 (into which we chose SpriteSet 3 "Mario Items" to be loaded) and display sprite image 0 from that set (the first question mark block)                   
+  Move(Qmark1,1,0,120,208)                                          'Add in the question mark sprites from Sprite Section 1 (into which we chose SpriteSet 3 "Player Items" to be loaded) and display sprite image 0 from that set (the first question mark block)                   
   Move(Qmark2,1,0,200,208)
   Move(Qmark3,1,0,232,208) 
   Move(Qmark4,1,0,216,152)
 
   coginit(1,GoombaMotion,@Stack1)                                   'Start Cog 1 and run GoombaMotion method on it. Let Cog 1 use the 100 longs that were reserved starting at "Stack1" as scratchpad RAM to store intermediate variables in as it interprets its Spin code.
 
-  x:=40                                                             'Start Mario's postion at x=40 y=256 (i.e. the upper left pixel of Sprite #1's image will coincide with pixel x=50, y=256 on the screen)  
+  x:=40                                                             'Start Player's postion at x=40 y=256 (i.e. the upper left pixel of Sprite #1's image will coincide with pixel x=50, y=256 on the screen)  
   y:=256
   repeat                                                            'This is the game's main loop
     UpdateAll                                                       'It is important to refresh the collision data and wait for the screen's blanking signal at the beginning of the video game's main loop (i.e. your program's main loop should start by calling the "UpdateAll" method)              
-    if CheckCollision(MarioBottom,Goomba)                           'Checks to see if Sprite #1 (Mario's legs) is colliding with Sprite 3 (Goomba)
-      MarioRot:=3                                                   'Rotation=3 rotates the sprite image left by 90 degreees
-      Rotate(MarioBottom,MarioRot)                                  'Rotates "MarioBottom" sprite (Sprite 0) see table in "Rosetta Stone" reference document for and exlaination of the different types of sprite rotation and mirror options
-      Rotate(MarioTop,MarioRot)
-      repeat 4                                                      'Animation of Mario falling back after being hit by Goomba
-        x:=x-10                                                     'Push Mario back to the left 10 pixels
-        Move(MarioBottom,0,0,x-16,y)
-        Move(marioTop,0,1,x,y)
+    if CheckCollision(PlayerBottom,Goomba)                           'Checks to see if Sprite #1 (Player's legs) is colliding with Sprite 3 (Goomba)
+      PlayerRot:=3                                                   'Rotation=3 rotates the sprite image left by 90 degreees
+      Rotate(PlayerBottom,PlayerRot)                                  'Rotates "PlayerBottom" sprite (Sprite 0) see table in "Rosetta Stone" reference document for and exlaination of the different types of sprite rotation and mirror options
+      Rotate(PlayerTop,PlayerRot)
+      repeat 4                                                      'Animation of Player falling back after being hit by Goomba
+        x:=x-10                                                     'Push Player back to the left 10 pixels
+        Move(PlayerBottom,0,0,x-16,y)
+        Move(PlayerTop,0,1,x,y)
         waitcnt(clkfreq/4+cnt)                                      'Note that this pause stops the main video game's loop, which freezes everything else in the game (which is really bad). Instead, you should use another cog to update global variables that control this motion (see the GoombaMotion method as an example of this)
     else
-      MarioRot:=0                                              
+      PlayerRot:=0                                              
 
     'Read which buttons on the two NES controllers are being pressed (this data is refreshed during "UpdateAll" and stored as bits in the variables "C1buttons" and "C2buttons"
     case C1buttons                                                  'A "case" statement is an elegant way of doing lots of "if" statements in Spin (this is similar to "switch" statement in Java)
       %1111_1101 :                                                  'NES controllers use a bit for each button and inverted logic in this order MSB=A_button__B_button__Select__Start____Up__Down__Left__Right=LSB. In this case, %1111_1101 indicates that the LEFT button is being pressed (since there is a zero in that bit)
         x:=x-1
-        MarioRot:=2                                         
+        PlayerRot:=2                                         
       %1111_1110 :                                                  '%1111_1110 indicates that the RIGHT button is being pressed (since there is a zero in that bit). Note that multiple button presses can be recorded simultaneously (e.g. %0111_1110 would indicate the right button and the A button were being pressed at the same time).
-        if GetCharacterXY(x+16,y)<>3                                'Check to see if Mario has the hill character (Background Character Image 3) to the right, and if so, don't let him move right any further. This demonstrates how to have a sprite interact with the backgound characters. in Spin, <> means "not equals to".
+        if GetCharacterXY(x+16,y)<>3                                'Check to see if Player has the hill character (Background Character Image 3) to the right, and if so, don't let him move right any further. This demonstrates how to have a sprite interact with the backgound characters. in Spin, <> means "not equals to".
           x:=x+1     
-          MarioRot:=0
+          PlayerRot:=0
       %1111_0111 :                                                  '%1111_0111 indicates that the UP button is being pressed
         y:=y-1  
       %1111_1011 :                                                  '%1111_1011 indicates that the DOWN button is being pressed
-        if GetCharacterXY(x,y+16)<>7 and GetCharacterXY(x,y+16)<>8  'Check to make sure that there isn't one of the two ground characters beneath Mario. If there is, don't let him move down any further
+        if GetCharacterXY(x,y+16)<>7 and GetCharacterXY(x,y+16)<>8  'Check to make sure that there isn't one of the two ground characters beneath Player. If there is, don't let him move down any further
           y:=y+1 
     case C2buttons                                                  'Check Player #2's controller buttons
       %1111_1101 : GoombaPos:=GoombaPos-5
       %1111_1110 : GoombaPos:=GoombaPos+5 
     
-    'Update the position and rotation of both of Mario's sprites (Sprite #0 and Sprite #1)
-    Rotate(MarioTop,MarioRot) 
-    Rotate(MarioBottom,MarioRot) 
-    Move(MarioTop,0,0,x,y-16)
-    Move(MarioBottom,0,1,x,y)
+    'Update the position and rotation of both of Player's sprites (Sprite #0 and Sprite #1)
+    Rotate(PlayerTop,PlayerRot) 
+    Rotate(PlayerBottom,PlayerRot) 
+    Move(PlayerTop,0,0,x,y-16)
+    Move(PlayerBottom,0,1,x,y)
 
     'Update Goomba sprite
     Rotate(Goomba,GoombaRot)                                        'Set Sprite #3's orrientation to flipped horizonally (2 or %010 - see poster)   
     Move(Goomba,1,12,GoombaPos,256)                                 'Move Sprite #3 from its default position x=512,y=512 (which is off of the screen) to 116,142onto the visible part of the screen  
 
-    if SpriteCollision(Qmark1)==MarioTop                            'If Sprite #4 (the leftmost Question Mark Block) is colliding with Sprite #0 (Mario's head), then release a 1up Mushroom
+    if SpriteCollision(Qmark1)==PlayerTop                            'If Sprite #4 (the leftmost Question Mark Block) is colliding with Sprite #0 (Player's head), then release a 1up Mushroom
       Move(OneUpMushroom,1,9,120,192)    
 
     'These are just here to help you get a better understanding of how the screen's coordinates work as you experiment with programming
     gd.putstr(22,0,string("X="))                                    'Print a string of text on the screen at col=22 row=0
-    DisplayNumber(24,0,GetSpriteX(1))                               'Look up and display Mario's feet sprite's X position         
+    DisplayNumber(24,0,GetSpriteX(1))                               'Look up and display Player's feet sprite's X position         
     gd.putstr(22,1,string("Y="))
-    DisplayNumber(24,1,GetSpriteY(1))                               'Look up and display Mario's feet sprite's Y position
+    DisplayNumber(24,1,GetSpriteY(1))                               'Look up and display Player's feet sprite's Y position
     gd.putstr(19,2,string("Char="))       
-    DisplayNumber(24,2,GetCharacterXY(x+8,y+8))                     'Look up and display the background character at Mario's feet sprite's current X and Y position (sprite coordinates are based on the upper left corner of the 16x16 pixel sprite bitmap image)
+    DisplayNumber(24,2,GetCharacterXY(x+8,y+8))                     'Look up and display the background character at Player's feet sprite's current X and Y position (sprite coordinates are based on the upper left corner of the 16x16 pixel sprite bitmap image)
     gd.putstr(17,3,string("Goomba="))       
     DisplayNumber(24,3,GetSpriteX(3))                               'Look up and display Goomba's X position
       
 
-PUB SuperMarioBackground | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
+PUB PlayerBackground | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
   'Draw the sky
   repeat j from 0 to 33
     repeat i from 0 to 49
