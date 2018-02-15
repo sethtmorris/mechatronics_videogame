@@ -1,4 +1,4 @@
-''2018_Demo_v1.2 by Gavin T. Garner, February 6, 2018
+''Seth, Rachel, and Ryan
 
 CON
   _xinfreq=6_250_000
