@@ -1,4 +1,4 @@
-''Seth, Rachel, and Ryan
+''Names
 
 CON
   _xinfreq=6_250_000
@@ -10,14 +10,9 @@ CON
   data1=6
   data2=7
   'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
-  PlayerTop=0                                        'Refer to sprite number 0 as "PlayerTop"
-  PlayerBottom=1                                     'Refer to sprite number 1 as "PlayerBottom" 
-  Goomba=3                                          'Refer to sprite number 3 as "Goomba"
-  Qmark1=4                                          'Refer to sprite number 4 as "Qmark1" 
-  Qmark2=5                                          'Refer to sprite number 5 as "Qmark2" 
-  Qmark3=6                                          'Refer to sprite number 6 as "Qmark3" 
-  Qmark4=7                                          'Refer to sprite number 7 as "Qmark4" 
-  OneUpMushroom=8                                   'Refer to sprite number 8 as "OneUpMushroom" 
+  PlayerTop=0                                       'Refer to sprite number 0 as "PlayerTop"
+  PlayerBottom=1                                    'Refer to sprite number 1 as "PlayerBottom" 
+
                                                     'etc.
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -25,25 +20,18 @@ OBJ
 VAR
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)
   byte C1buttons, C2buttons                                         'These variables are used to store the button states of the two NES controllers
-  long x, y, PlayerRot, GoombaPos, GoombaRot                         'Use x and y to store sprite number 1's (PlayerBottom's) position coordinates, PlayerRot to store sprite number 0's rotation orrientation, GoombaPos to store sprite number 3's (Goomba's) position, and GoombaRot to store sprite number 3's rotation orrientation
+  long x, y, PlayerRot          		       			'Use x and y to store sprite number 1's (PlayerBottom's) position coordinates, PlayerRot to store sprite number 0's rotation orrientation
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start. 
                      
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
-  SuperPlayerBackground                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
+  Background                                              'Call the "Background" method (below) then return here and run the next line
   VideoGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
+
+
   
 PUB VideoGame | i                                                   'This is the main public method for this program
-  GoombaPos:=295                                                    'Start the Goomba with its X position at 295
-  Move(Goomba,1,12,GoombaPos,256)                                   'Move Goomba sprite, which we've assigned to sprite number 3 (and which is displaying the image from sprite section=1, sprite number=12) to x=295 y=256  Move(SpriteNumber,SpriteSection,SpriteImage,Xposition,Yposition)                                                                
-  Move(Qmark1,1,0,120,208)                                          'Add in the question mark sprites from Sprite Section 1 (into which we chose SpriteSet 3 "Player Items" to be loaded) and display sprite image 0 from that set (the first question mark block)                   
-  Move(Qmark2,1,0,200,208)
-  Move(Qmark3,1,0,232,208) 
-  Move(Qmark4,1,0,216,152)
-
-  coginit(1,GoombaMotion,@Stack1)                                   'Start Cog 1 and run GoombaMotion method on it. Let Cog 1 use the 100 longs that were reserved starting at "Stack1" as scratchpad RAM to store intermediate variables in as it interprets its Spin code.
-
   x:=40                                                             'Start Player's postion at x=40 y=256 (i.e. the upper left pixel of Sprite #1's image will coincide with pixel x=50, y=256 on the screen)  
   y:=256
   repeat                                                            'This is the game's main loop
@@ -82,14 +70,7 @@ PUB VideoGame | i                                                   'This is the
     Rotate(PlayerTop,PlayerRot) 
     Rotate(PlayerBottom,PlayerRot) 
     Move(PlayerTop,0,0,x,y-16)
-    Move(PlayerBottom,0,1,x,y)
-
-    'Update Goomba sprite
-    Rotate(Goomba,GoombaRot)                                        'Set Sprite #3's orrientation to flipped horizonally (2 or %010 - see poster)   
-    Move(Goomba,1,12,GoombaPos,256)                                 'Move Sprite #3 from its default position x=512,y=512 (which is off of the screen) to 116,142onto the visible part of the screen  
-
-    if SpriteCollision(Qmark1)==PlayerTop                            'If Sprite #4 (the leftmost Question Mark Block) is colliding with Sprite #0 (Player's head), then release a 1up Mushroom
-      Move(OneUpMushroom,1,9,120,192)    
+    Move(PlayerBottom,0,1,x,y)     
 
     'These are just here to help you get a better understanding of how the screen's coordinates work as you experiment with programming
     gd.putstr(22,0,string("X="))                                    'Print a string of text on the screen at col=22 row=0
@@ -98,74 +79,10 @@ PUB VideoGame | i                                                   'This is the
     DisplayNumber(24,1,GetSpriteY(1))                               'Look up and display Player's feet sprite's Y position
     gd.putstr(19,2,string("Char="))       
     DisplayNumber(24,2,GetCharacterXY(x+8,y+8))                     'Look up and display the background character at Player's feet sprite's current X and Y position (sprite coordinates are based on the upper left corner of the 16x16 pixel sprite bitmap image)
-    gd.putstr(17,3,string("Goomba="))       
-    DisplayNumber(24,3,GetSpriteX(3))                               'Look up and display Goomba's X position
       
 
-PUB PlayerBackground | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
-  'Draw the sky
-  repeat j from 0 to 33
-    repeat i from 0 to 49
-       Draw(2,0,i,j)                                                'Fill the screen with sky blue character  Draw(section=2,character=0,col=i,row=j) 
-  'Draw the ground
-  repeat j from 34 to 36 step 2
-    repeat i from 0 to 49 step 2
-      Draw(2,7,i,j)              
-      Draw(2,8,i+1,j)            
-      Draw(2,9,i,j+1)              
-      Draw(2,10,i+1,j+1) 
-  'Draw the triple bush 
-   '<-------------INSERT YOUR OWN CODE HERE
-  
-  'Draw hill
-  Draw(2,3,15,33)
-  repeat i from 16 to 19
-    Draw(2,4,i,33) 
-  Draw(2,6,20,33)
-  Draw(2,3,16,32)
-  Draw(2,4,17,32)
-  Draw(2,5,18,32)
-  Draw(2,6,19,32)
-  Draw(2,1,17,31)
-  Draw(2,2,18,31)
-  'Draw the little bush
-   '<-------------INSERT YOUR OWN CODE HERE
-  
-  'Draw the pipe
-   '<-------------INSERT YOUR OWN CODE HERE
 
-  'Draw the bricks
-   '<-------------INSERT YOUR OWN CODE HERE
-
-  'Draw the single cloud
-  repeat i from 0 to 3
-    Draw(2,34+i,22+i,14)
-  Draw(2,31,22,13)
-  Draw(2,32,23,13)
-  Draw(2,32,24,13)
-  Draw(2,33,25,13)
-  Draw(2,29,23,12)
-  Draw(2,30,24,12)
-  'Draw the tripple cloud
-   '<-------------INSERT YOUR OWN CODE HERE
-   
-
-PUB GoombaMotion                                                    'It will probably be helpful to use additional cogs to keep track of sprite movements and rotations (just don't try to call any of Gameduino methods below (i.e. "gd._something_") on additional cogs. See the yellow warning below!
-  repeat
-    repeat until GoombaPos=>295
-      GoombaPos:=GoombaPos+3
-      ToggleGoomba
-    repeat until GoombaPos=<100
-      GoombaPos:=GoombaPos-3 
-      ToggleGoomba      
-
-PUB ToggleGoomba
-  if GoombaRot==0
-    GoombaRot:=2
-    waitcnt(clkfreq/8+cnt)                                          'Because this is running on a different cog/processor than the video game's main loop (on Cog 0), this pause does not slow the game down
-  if GoombaRot==2
-    GoombaRot:=0
-    waitcnt(clkfreq/8+cnt)
+PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
 
 
 
@@ -175,10 +92,14 @@ PUB Move(SpriteNumber,SpriteSection,SpriteImage,Xposition,Yposition) | rotation,
   rotation:=(gd.m_rd($3000+SpriteNumber*4+1) & %0000_1110) >> 1                  'Look up this sprite's current rotation orientation in its sprite control register
   gd.sprite(SpriteNumber,Xposition,Yposition,SpriteImage+16*SpriteSection,SpriteSection,rotation,0)'Change the 32-bit control register for this sprite
 
+
+
 PUB Rotate(SpriteNumber,rotation) | databyte
   databyte:=gd.m_rd($3000+(SpriteNumber*4)+1)
   databyte:=(databyte & %11110001) + (rotation << 1)                              'Read 2nd byte of sprite's control data and replace it's 3-bit rotation value                                         
   gd.m_wr($3000+SpriteNumber*4+1,databyte)
+
+
   
 PUB CheckCollision(SpriteNumberA,SpriteNumberB) : collision | OverlappingSprite  'Returns true (-1) or false (0) depending on whether or not the two sprites are colliding      
   if SpriteNumberA>SpriteNumberB                                                 'When two sprites overlap, the Gameduino stores the number of the lower sprite in the upper sprites collision memory.                 
@@ -194,16 +115,24 @@ PUB CheckCollision(SpriteNumberA,SpriteNumberB) : collision | OverlappingSprite 
     else
       collision:=false
 
+
+
 PUB SpriteCollision(SpriteNumber) : collision                                    'Returns the sprite number of the sprite with which the specified sprite is colliding/overlapping. 'If the specified sprite is not colliding with any other sprites, it returns the number 255 ($FF).   
   collision:=collisions[SpriteNumber]                                            'Note that if the specified sprite is overlapping more than one other sprite, only the highest number sprite's number is returned. However, you could call this method again to find out if this highest sprite was also overlapping another sprite underneath it and keep doing this until a sprite returns 255 (indicating that it isn't covering up any other sprites). 'Hint: It might be easier to make your main character(s) out of the highest sprite numbers so that these sprites will always be overlapping all of the other sprites.                      
+
+
 
 PUB ScrollScreen(ScrollToX,ScrollToY)                                            'Moves the 400x300 visible screen "window" around in the 512x512 pixel background (default is X=0 Y=0 and max is X=111 Y=211)
   gd.m_wr16($2804,ScrollToX)
   gd.m_wr16($2806,ScrollToY)
 
+
+
 PUB Draw(section,character,col,row)  | address                                   'Draw a character (0-255) on the screen's background
   address:=row*64+col                                                            '512x512 pixel background screen, 64x64 background characters, 1 byte per character 
   gd.m_wr(address,character+64*section) 
+
+
 
 PUB DisplayNumber(col,row,number) | i,j,address,numberDigits,temp                'Displays a number out of characters at a specified row and column
   address:=row*64+col                                                            'Convert the column and row arguments to a usable address value
@@ -237,6 +166,8 @@ PUB DisplayNumber(col,row,number) | i,j,address,numberDigits,temp               
       col++                                                                     
     i:=i/10
 
+
+
 PUB UpdateAll                                                                    'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
   C1buttons~
   C2buttons~
@@ -255,20 +186,32 @@ PUB UpdateAll                                                                   
   gd.waitvblank                                                                  'Collision RAM data is only valid immediately after waiting for the vertical blanking period
   gd.load_hub($2900,@collisions,256)                                             'Loads all of the collision data from the Gameduino's collision RAM (1 byte for each sprite number, 256 bytes total) into the "collisions" array  
 
+
+
 PUB GetSpriteX(SpriteNumber) : Xcoordinate 
   Xcoordinate:=(gd.m_rd($3001+SpriteNumber*4)<<8 + gd.m_rd($3000+SpriteNumber*4)) & %1_11111111 'Get the lower 16-bits of this sprite number's current 32-bit control value, then bitwise "and" away everything except for bits 9-0, which contain the sprite's X coordinate location        
+
+
   
 PUB GetSpriteY(SpriteNumber) : Ycoordinate
   Ycoordinate:=(gd.m_rd($3003+SpriteNumber*4)<<8 + gd.m_rd($3002+SpriteNumber*4)) & %1_11111111 'Get the upper 16-bits of this sprite number's current 32-bit control value, then bitwise "and" away everything except for bits 24-16, which contain the sprite's Y coordinate location
 
+
+
 PUB GetCharacter(col,row) : character                                            'Read and return the relative value/number of a character that has been drawn at a certain column and row on the 64 x 64 Background Character Screen
   character:=gd.m_rd(row*64+col)//64                                             'Note: This gives the character number within the Background Section (e.g. if the character is character #5 in Section 2, it simply returns 5). 
+
+
 
 PUB GetRawCharacter(col,row) : character                                         'Read and return the value/number of a character that has been drawn at a certain column and row on the 64 x 64 Background Character Screen
   character:=gd.m_rd(row*64+col)                                                 'Note: This gives the raw character number within the Gamdeuino's character RAM (e.g. if the character is character #5 in Section 2, it returns 133 because each section is 64 characters and Section 2 starts at 128.)  
 
+
+
 PUB GetCharacterXY(Xposition,Yposition) : character                              'Read and return the value/number of the character that lies behind a certain X and Y pixel position (i.e. the 512x512 coordinates that sprites are allowed to move through)   
   character:=gd.m_rd(Yposition/8*64+Xposition/8)//64                             'Note: This gives the character number within the Background Section (e.g. if the character is character #5 in Section 2, it simply returns 5).
+
+
 
 PUB GetRawCharacterXY(Xposition,Yposition) : character                           'Read and return the value/number of the character that lies behind a certain X and Y pixel position (i.e. the 512x512 coordinates that sprites are allowed to move through)
   character:=gd.m_rd(Yposition/8*64+Xposition/8)                                 'Note: This gives the raw character number within the Gamdeuino's character RAM (e.g. if the character is character #5 in Section 2, it returns 133 because each section is 64 characters and Section 2 starts at 128.) 
