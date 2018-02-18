@@ -30,10 +30,10 @@ PUB Main
   ' sprite images loaded into the Gameduino at at time (in the 256 color mode). However, the Gameduino can handle 256 total sprites
   ' at once, any of which can display any one of these 64 sprite images (i.e. more than one sprite number can be showing the same
   ' sprite image at the same time). While programming your game, you need to remember which images you placed into which section.
-  LoadSprites(0,0)                           'Load SpriteSet#0 (Mario) into Sprite Section 0 of the Gameduino's RAM
-  LoadSprites(3,1)                           'Load SpriteSet#3 (Mario Items) into Sprite Section 1 of the Gameduino's RAM                                                                   
-  'LoadSprites(19,2)                          'Load SpriteSet#19 (Knospe) into Sprite Section 2 of the Gameduino's RAM  
-  'LoadSprites(2,3)                           'Load SpriteSet#2 (Mini Mario) into Sprite Section 3 of the Gameduino's RAM 
+  LoadSprites(32,0)                           'Load SpriteSet#32 (Futurama characters) into Sprite Section 0 of the Gameduino's RAM
+  LoadSprites(41,1)                           'Load SpriteSet#41 (Robot Chomper) into Sprite Section 1 of the Gameduino's RAM                                                                   
+  LoadSprites(21,2)                           'Load SpriteSet#19 (Small Garner) into Sprite Section 2 of the Gameduino's RAM  
+  LoadSprites(22,3)                           'Load SpriteSet#2 (Big Garner) into Sprite Section 3 of the Gameduino's RAM 
   
   outa[16]~                                  'Turn off Pin 16's LED to indicate data upload to the Gameduino chip has completed
   gd.putstr(1,0,string("Sprite and Character data uploaded to Gameduino"))
@@ -120,8 +120,8 @@ PUB LoadDefaultBackground
 PUB LoadBackground(BackgroundSet,section) | index
   sd.mountPartition(0) 
   case BackgroundSet
-'    0 : sd.openFile(string("bg0.TXT"),"R") 
-'    1 : sd.openFile(string("bg1.TXT"),"R")
+    0 : sd.openFile(string("bg0.TXT"),"R") 
+    1 : sd.openFile(string("bg1.TXT"),"R")
     2 : sd.openFile(string("bg2.TXT"),"R")
     3 : sd.openFile(string("bg3.TXT"),"R")  
 

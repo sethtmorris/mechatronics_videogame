@@ -20,33 +20,32 @@ OBJ
 VAR
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)
   byte C1buttons, C2buttons                                         'These variables are used to store the button states of the two NES controllers
-  long x, y, PlayerRot          		       			'Use x and y to store sprite number 1's (PlayerBottom's) position coordinates, PlayerRot to store sprite number 0's rotation orrientation
+  long x, y, PlayerRot                                                  'Use x and y to store sprite number 1's (PlayerBottom's) position coordinates, PlayerRot to store sprite number 0's rotation orrientation
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start. 
                      
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
+  Intro
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
-  Background                                              'Call the "Background" method (below) then return here and run the next line
+  CharacterSelection
+  Background                                                                   'Call the "Background" method (below) then return here and run the next line
   VideoGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
 
 
   
+PUB Intro
+
+
+
+PUB CharacterSelection
+
+
+
 PUB VideoGame | i                                                   'This is the main public method for this program
   x:=40                                                             'Start Player's postion at x=40 y=256 (i.e. the upper left pixel of Sprite #1's image will coincide with pixel x=50, y=256 on the screen)  
   y:=256
   repeat                                                            'This is the game's main loop
-    UpdateAll                                                       'It is important to refresh the collision data and wait for the screen's blanking signal at the beginning of the video game's main loop (i.e. your program's main loop should start by calling the "UpdateAll" method)              
-    if CheckCollision(PlayerBottom,Goomba)                           'Checks to see if Sprite #1 (Player's legs) is colliding with Sprite 3 (Goomba)
-      PlayerRot:=3                                                   'Rotation=3 rotates the sprite image left by 90 degreees
-      Rotate(PlayerBottom,PlayerRot)                                  'Rotates "PlayerBottom" sprite (Sprite 0) see table in "Rosetta Stone" reference document for and exlaination of the different types of sprite rotation and mirror options
-      Rotate(PlayerTop,PlayerRot)
-      repeat 4                                                      'Animation of Player falling back after being hit by Goomba
-        x:=x-10                                                     'Push Player back to the left 10 pixels
-        Move(PlayerBottom,0,0,x-16,y)
-        Move(PlayerTop,0,1,x,y)
-        waitcnt(clkfreq/4+cnt)                                      'Note that this pause stops the main video game's loop, which freezes everything else in the game (which is really bad). Instead, you should use another cog to update global variables that control this motion (see the GoombaMotion method as an example of this)
-    else
-      PlayerRot:=0                                              
+    UpdateAll                                                       'It is important to refresh the collision data and wait for the screen's blanking signal at the beginning of the video game's main loop (i.e. your program's main loop should start by calling the "UpdateAll" method)                                           
 
     'Read which buttons on the two NES controllers are being pressed (this data is refreshed during "UpdateAll" and stored as bits in the variables "C1buttons" and "C2buttons"
     case C1buttons                                                  'A "case" statement is an elegant way of doing lots of "if" statements in Spin (this is similar to "switch" statement in Java)
@@ -61,10 +60,7 @@ PUB VideoGame | i                                                   'This is the
         y:=y-1  
       %1111_1011 :                                                  '%1111_1011 indicates that the DOWN button is being pressed
         if GetCharacterXY(x,y+16)<>7 and GetCharacterXY(x,y+16)<>8  'Check to make sure that there isn't one of the two ground characters beneath Player. If there is, don't let him move down any further
-          y:=y+1 
-    case C2buttons                                                  'Check Player #2's controller buttons
-      %1111_1101 : GoombaPos:=GoombaPos-5
-      %1111_1110 : GoombaPos:=GoombaPos+5 
+          y:=y+1  
     
     'Update the position and rotation of both of Player's sprites (Sprite #0 and Sprite #1)
     Rotate(PlayerTop,PlayerRot) 
@@ -80,6 +76,18 @@ PUB VideoGame | i                                                   'This is the
     gd.putstr(19,2,string("Char="))       
     DisplayNumber(24,2,GetCharacterXY(x+8,y+8))                     'Look up and display the background character at Player's feet sprite's current X and Y position (sprite coordinates are based on the upper left corner of the 16x16 pixel sprite bitmap image)
       
+
+
+PUB PlayerMovement
+
+
+
+PUB ChomperMovement
+
+
+
+PUB LittleGarnerMovement
+
 
 
 PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
