@@ -36,6 +36,8 @@ PUB Main
   CharacterSelection
   Background                                                                   'Call the "Background" method (below) then return here and run the next line
 >>>>>>> b1dc2b69b8d60f6bffb2f4e4b0109f1039618170
+  CharacterSelection
+  Background                                                                   'Call the "Background" method (below) then return here and run the next line
   VideoGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
 
 
