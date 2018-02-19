@@ -12,6 +12,8 @@ CON
   data2=7  
   'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
 =======
+  data2=7
+
 >>>>>>> b7cdecccbf8f7646d8b41b226c8523c35018ce89
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -45,6 +47,7 @@ PUB RunGame
   y := 150   
   y_min :=266
 
+  'Intialize Flags
   mvmt := false
   jump := false
 
