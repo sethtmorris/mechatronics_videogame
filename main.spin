@@ -27,21 +27,10 @@ PUB Main
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
   Intro
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
-<<<<<<< HEAD
-<<<<<<< HEAD
-  PlayerBackground                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
-=======
->>>>>>> b1dc2b69b8d60f6bffb2f4e4b0109f1039618170
-=======
-  CharacterSelection
-  Background                                                                   'Call the "Background" method (below) then return here and run the next line
->>>>>>> b1dc2b69b8d60f6bffb2f4e4b0109f1039618170
-  CharacterSelection
-  Background                                                                   'Call the "Background" method (below) then return here and run the next line
+  Background                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
+  CharacterSelection                                                                  'Call the "Background" method (below) then return here and run the next line
   VideoGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
 
-
-  
 PUB Intro
 
 
