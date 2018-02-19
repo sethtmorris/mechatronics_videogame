@@ -10,75 +10,141 @@ CON
   data1=6
   data2=7
   'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
-  PlayerTop=0                                       'Refer to sprite number 0 as "PlayerTop"
-  PlayerBottom=1                                    'Refer to sprite number 1 as "PlayerBottom" 
-
-                                                    'etc.
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
 
 VAR
-  byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)
-  byte C1buttons, C2buttons                                         'These variables are used to store the button states of the two NES controllers
-  long x, y, PlayerRot                                                  'Use x and y to store sprite number 1's (PlayerBottom's) position coordinates, PlayerRot to store sprite number 0's rotation orrientation
-  long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start. 
-                     
+
+  byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
+  byte C1buttons, C2buttons 'NES controller button states
+  long x, y, player_rot 'vars for player posiion and rotation
+  byte TPlayer, BPlayer, Alt1Player, Alt2Player 'Sprite shorthands for player : diff. from Demo prgm
+  byte feet 'addnl sprite shorthand
+  long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
+  byte jump, mvmt
+                   
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
   Intro
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
   Background                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
-  CharacterSelection                                                                  'Call the "Background" method (below) then return here and run the next line
-  VideoGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
+  SelectCharacter                                                                  'Call the "Background" method (below) then return here and run the next line
+  RunGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
 
 PUB Intro
 
 
 
-PUB CharacterSelection
+PUB RunGame
 
+  'Player Initial Position
+  x := 40
+  y := 256
 
+  mvmt := false
+  jump := false
 
-PUB VideoGame | i                                                   'This is the main public method for this program
-  x:=40                                                             'Start Player's postion at x=40 y=256 (i.e. the upper left pixel of Sprite #1's image will coincide with pixel x=50, y=256 on the screen)  
-  y:=256
-  repeat                                                            'This is the game's main loop
-    UpdateAll                                                       'It is important to refresh the collision data and wait for the screen's blanking signal at the beginning of the video game's main loop (i.e. your program's main loop should start by calling the "UpdateAll" method)                                           
+  coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
+  coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
+  
+  repeat                              'Main loop
+    UpdateAll
 
-    'Read which buttons on the two NES controllers are being pressed (this data is refreshed during "UpdateAll" and stored as bits in the variables "C1buttons" and "C2buttons"
-    case C1buttons                                                  'A "case" statement is an elegant way of doing lots of "if" statements in Spin (this is similar to "switch" statement in Java)
-      %1111_1101 :                                                  'NES controllers use a bit for each button and inverted logic in this order MSB=A_button__B_button__Select__Start____Up__Down__Left__Right=LSB. In this case, %1111_1101 indicates that the LEFT button is being pressed (since there is a zero in that bit)
+    case C1buttons   'Controller Input / Character Control
+      %1111_1101 :   'Left Button
         x:=x-1
-        PlayerRot:=2                                         
-      %1111_1110 :                                                  '%1111_1110 indicates that the RIGHT button is being pressed (since there is a zero in that bit). Note that multiple button presses can be recorded simultaneously (e.g. %0111_1110 would indicate the right button and the A button were being pressed at the same time).
-        if GetCharacterXY(x+16,y)<>3                                'Check to see if Player has the hill character (Background Character Image 3) to the right, and if so, don't let him move right any further. This demonstrates how to have a sprite interact with the backgound characters. in Spin, <> means "not equals to".
-          x:=x+1     
-          PlayerRot:=0
-      %1111_0111 :                                                  '%1111_0111 indicates that the UP button is being pressed
-        y:=y-1  
-      %1111_1011 :                                                  '%1111_1011 indicates that the DOWN button is being pressed
-        if GetCharacterXY(x,y+16)<>7 and GetCharacterXY(x,y+16)<>8  'Check to make sure that there isn't one of the two ground characters beneath Player. If there is, don't let him move down any further
-          y:=y+1  
+        player_rot:=2
+        mvmt := true                                       
+      %1111_1110 :   'Right Button                                             
+        x:=x+1     
+        player_rot:=0
+        mvmt := true 
+      %1111_0111 :    'Up Button
+        if y == 256
+          jump := true
+      %1111_0101 :    'Up and to the Left
+        if y == 256
+          jump := true  
+        x := x-1
+        mvmt := true     'Up and to the Right
+      %1111_0110 :
+        if y == 256
+          jump := true
+        x := x+1
+        mvmt := 1      
+      '%1111_1011 :   'Down Button                                              
+        'y:=y+1
+
+    if y < 256        'Gravity
+      y := y+1
+  
+   'Update Player Character
+    Rotate(TPlayer,player_rot) 
+    Rotate(BPlayer,player_rot) 
+    Move(TPlayer,0,TPlayer,x,y-16)
+    Move(BPlayer,0,BPlayer,x,y)
+         
+PUB player_jump
+
+  repeat
+    if jump
+      repeat 24
+        y := y-2
+        waitcnt(clkfreq/100 + cnt)
+      jump := 0
+
+PUB animate_player
+
+  repeat
+    if BPlayer == feet and mvmt
+      BPlayer := Alt2Player
+      waitcnt(clkfreq/10+cnt)
+      mvmt := 0
+    if BPlayer == Alt2Player
+      BPlayer := feet
+      waitcnt(clkfreq/10+cnt)
+  
+
+PUB SelectCharacter | oldT, oldB
+
+  'Location of Sprites During Selection
+  x := 40
+  y := 256
+
+  'Initial Sprite Values
+  TPlayer := 0
+  BPlayer := 1
+
+  repeat until (C1buttons == %0111_1111)
+    UpdateAll
     
-    'Update the position and rotation of both of Player's sprites (Sprite #0 and Sprite #1)
-    Rotate(PlayerTop,PlayerRot) 
-    Rotate(PlayerBottom,PlayerRot) 
-    Move(PlayerTop,0,0,x,y-16)
-    Move(PlayerBottom,0,1,x,y)     
+    'Display Text
+    gd.putstr(22,0,string("Select a Character!"))
+    gd.putstr(22,1,string("Use Up / Down to Toggle."))
+    gd.putstr(22,2,string("Press A to Select."))  
 
-    'These are just here to help you get a better understanding of how the screen's coordinates work as you experiment with programming
-    gd.putstr(22,0,string("X="))                                    'Print a string of text on the screen at col=22 row=0
-    DisplayNumber(24,0,GetSpriteX(1))                               'Look up and display Player's feet sprite's X position         
-    gd.putstr(22,1,string("Y="))
-    DisplayNumber(24,1,GetSpriteY(1))                               'Look up and display Player's feet sprite's Y position
-    gd.putstr(19,2,string("Char="))       
-    DisplayNumber(24,2,GetCharacterXY(x+8,y+8))                     'Look up and display the background character at Player's feet sprite's current X and Y position (sprite coordinates are based on the upper left corner of the 16x16 pixel sprite bitmap image)
-      
+    oldT := TPlayer
+    oldB := BPlayer
+     
+    case C1buttons                'Toggle Sprites Based on User Input
+      %1111_0111 :                'Up Button
+        if TPlayer =< 8           'Keep Sprites within Range                   
+          TPlayer := TPlayer + 4
+          BPlayer := BPlayer + 4
+      %1111_1011 :                'Down Button
+        if TPlayer => 4           'Keep Sprites within Range
+          TPlayer := TPlayer - 4
+          BPlayer := BPlayer - 4
+    waitcnt(clkfreq/7 + cnt)
+    Move(oldT,0,oldT,0,0)
+    Move(oldB,0,oldB,0,0)
+    Move(TPlayer,0,TPlayer,x,y-16)
+    Move(BPlayer,0,BPlayer,x,y)
 
-
-PUB PlayerMovement
-
-
+  'Set Alternate Sprite Values
+  Alt1Player := TPlayer + 2
+  Alt2Player := TPlayer + 3
+  feet := BPlayer        
 
 PUB ChomperMovement
 
