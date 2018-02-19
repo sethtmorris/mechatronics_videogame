@@ -8,7 +8,7 @@ CON
   clk=4
   latch=5
   data1=6
-  data2=7
+  data2=7  
   'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -17,7 +17,7 @@ VAR
 
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
-  long x, y, y_min, player_rot 'vars for player posiion and rotation
+  long x, y, y_min, spacing, player_rot 'vars for player posiion and rotation
   byte TPlayer, BPlayer, Alt1Player, Alt2Player 'Sprite shorthands for player : diff. from Demo prgm
   byte feet 'addnl sprite shorthand
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
@@ -39,7 +39,7 @@ PUB RunGame
 
   'Player Initial Position
   x := 200
-  y := 150
+  y := 150   
   y_min :=266
 
   mvmt := false
@@ -159,17 +159,90 @@ PUB LittleGarnerMovement
 
 
 PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
+  'This repeat loop just sets the background to black, might not be necessary in the final run but is convenient for testing
   repeat j from 0 to 37
     repeat i from 0 to 49
       Draw(0,1,i,j)
+
+  'Draw the ground
   j :=35
   repeat j from 35 to 36
     repeat i from 0 to 49
         Draw(0,26,i,j)
         Draw(0,26,i,j+1)
-  j :=31
+  spacing:=5
+  'Level one bricks
+  j :=30 
   repeat i from 0 to 5
     Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+
+  'Level two bricks
+  j :=j-spacing 
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+    
+  'Level three bricks
+  j :=j-spacing  
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+
+   'Level four bricks
+  j :=j-spacing  
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+
+   'Level five bricks
+  j :=j-spacing  
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+
+   'Level six bricks
+  j :=j-spacing  
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+  {
+   'Level seven bricks
+  j :=7 
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+
+   'Level eight bricks
+  j :=3
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
+  repeat i from 9 to 30
+    Draw(0,22,i,j)
+  repeat i from 40 to 49
+    Draw(0,22,i,j)
+  }
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
