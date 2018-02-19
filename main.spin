@@ -17,19 +17,18 @@ VAR
 
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
-  long x, y, player_rot 'vars for player posiion and rotation
+  long x, y, y_min, player_rot 'vars for player posiion and rotation
   byte TPlayer, BPlayer, Alt1Player, Alt2Player 'Sprite shorthands for player : diff. from Demo prgm
   byte feet 'addnl sprite shorthand
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt
                    
 PUB Main 
-
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
   Intro
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
-  Background                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
   SelectCharacter                                                                  'Call the "Background" method (below) then return here and run the next line
+  Background 
   RunGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
 
 PUB Intro
@@ -39,8 +38,9 @@ PUB Intro
 PUB RunGame
 
   'Player Initial Position
-  x := 40
-  y := 256
+  x := 200
+  y := 150
+  y_min :=266
 
   mvmt := false
   jump := false
@@ -61,22 +61,22 @@ PUB RunGame
         player_rot:=0
         mvmt := true 
       %1111_0111 :    'Up Button
-        if y == 256
+        if y == y_min
           jump := true
       %1111_0101 :    'Up and to the Left
-        if y == 256
+        if y == y_min
           jump := true  
         x := x-1
         mvmt := true     'Up and to the Right
       %1111_0110 :
-        if y == 256
+        if y == y_min
           jump := true
         x := x+1
         mvmt := 1      
       '%1111_1011 :   'Down Button                                              
         'y:=y+1
 
-    if y < 256        'Gravity
+    if y < y_min        'Gravity
       y := y+1
   
    'Update Player Character
@@ -106,11 +106,14 @@ PUB animate_player
       waitcnt(clkfreq/10+cnt)
   
 
-PUB SelectCharacter | oldT, oldB
-
+PUB SelectCharacter | oldT, oldB, i, j, k
+  repeat j from 0 to 37
+    repeat i from 0 to 49
+      Draw(0,0,i,j)
+      
   'Location of Sprites During Selection
-  x := 40
-  y := 256
+  x := 200
+  y := 150
 
   'Initial Sprite Values
   TPlayer := 0
@@ -158,10 +161,15 @@ PUB LittleGarnerMovement
 PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
   repeat j from 0 to 37
     repeat i from 0 to 49
-      Draw(0,0,i,j)
-  j :=34
-  repeat i from 0 to 49 step 1
-        Draw(0,7,i,j)
+      Draw(0,1,i,j)
+  j :=35
+  repeat j from 35 to 36
+    repeat i from 0 to 49
+        Draw(0,26,i,j)
+        Draw(0,26,i,j+1)
+  j :=31
+  repeat i from 0 to 5
+    Draw(0,22,i,j)
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
