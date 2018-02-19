@@ -8,10 +8,6 @@ CON
   clk=4
   latch=5
   data1=6
-<<<<<<< HEAD
-  data2=7  
-  'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
-=======
   data2=7
 
 OBJ
