@@ -9,7 +9,7 @@ CON
   latch=5
   data1=6
   data2=7
-  'Hint: It's a lot easier to keep track of things if you create simple names for sprite numbers and their images
+
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
 
@@ -42,6 +42,7 @@ PUB RunGame
   x := 40
   y := 256
 
+  'Intialize Flags
   mvmt := false
   jump := false
 
