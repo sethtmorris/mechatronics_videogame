@@ -14,7 +14,6 @@ CON
 =======
   data2=7
 
->>>>>>> b7cdecccbf8f7646d8b41b226c8523c35018ce89
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
 
@@ -23,8 +22,7 @@ VAR
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, spacing, player_rot 'vars for player posiion and rotation
-  byte TPlayer, BPlayer, Alt1Player, Alt2Player 'Sprite shorthands for player : diff. from Demo prgm
-  byte feet 'addnl sprite shorthand
+  byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt
                    
@@ -88,8 +86,8 @@ PUB RunGame
    'Update Player Character
     Rotate(TPlayer,player_rot) 
     Rotate(BPlayer,player_rot) 
-    Move(TPlayer,0,TPlayer,x,y-16)
-    Move(BPlayer,0,BPlayer,x,y)
+    Move(TPlayer,0,0,x,y-16)
+    Move(BPlayer,0,1,x,y)
          
 PUB player_jump
 
@@ -112,7 +110,7 @@ PUB animate_player
       waitcnt(clkfreq/10+cnt)
   
 
-PUB SelectCharacter | oldT, oldB, i, j, k
+PUB SelectCharacter |i, j, k
   repeat j from 0 to 37
     repeat i from 0 to 49
       Draw(0,0,i,j)
@@ -146,10 +144,8 @@ PUB SelectCharacter | oldT, oldB, i, j, k
           TPlayer := TPlayer - 4
           BPlayer := BPlayer - 4
     waitcnt(clkfreq/7 + cnt)
-    Move(oldT,0,oldT,1000,0)
-    Move(oldB,0,oldB,1000,0)
-    Move(TPlayer,0,TPlayer,x,y-16)
-    Move(BPlayer,0,BPlayer,x,y)
+    Move(TPlayer,0,0,x,y-16)
+    Move(BPlayer,0,1,x,y)
 
   'Set Alternate Sprite Values
   Alt1Player := TPlayer + 2
