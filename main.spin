@@ -24,6 +24,7 @@ VAR
   byte jump, mvmt
                    
 PUB Main 
+
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
   Intro
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
@@ -157,12 +158,10 @@ PUB LittleGarnerMovement
 PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
   repeat j from 0 to 37
     repeat i from 0 to 49
-      Draw(0,1,i,j)
-  j :=35
-  repeat j from 35 to 36
-    repeat i from 0 to 49
-        Draw(0,26,i,j)
-        Draw(0,26,i,j+1)
+      Draw(0,0,i,j)
+  j :=34
+  repeat i from 0 to 49 step 1
+        Draw(0,7,i,j)
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
