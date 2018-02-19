@@ -89,7 +89,12 @@ PUB LittleGarnerMovement
 
 
 PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
-
+  repeat j from 0 to 37
+    repeat i from 0 to 49
+      Draw(0,0,i,j)
+  j :=34
+  repeat i from 0 to 49 step 1
+        Draw(0,7,i,j)
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
