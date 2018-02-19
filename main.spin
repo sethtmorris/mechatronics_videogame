@@ -126,9 +126,6 @@ PUB SelectCharacter |i, j, k
     gd.putstr(22,0,string("Select a Character!"))
     gd.putstr(22,1,string("Use Up / Down to Toggle."))
     gd.putstr(22,2,string("Press A to Select."))  
-
-    oldT := TPlayer
-    oldB := BPlayer
      
     case C1buttons                'Toggle Sprites Based on User Input
       %1111_0111 :                'Up Button
