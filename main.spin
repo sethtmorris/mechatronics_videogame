@@ -28,6 +28,7 @@ PUB Main
   Intro
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
 <<<<<<< HEAD
+<<<<<<< HEAD
   PlayerBackground                                              'Call the "SuperPlayerBackground" method (below) then return here and run the next line
 =======
   CharacterSelection
