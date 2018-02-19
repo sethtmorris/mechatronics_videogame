@@ -136,8 +136,8 @@ PUB SelectCharacter | oldT, oldB
           TPlayer := TPlayer - 4
           BPlayer := BPlayer - 4
     waitcnt(clkfreq/7 + cnt)
-    Move(oldT,0,oldT,0,0)
-    Move(oldB,0,oldB,0,0)
+    Move(oldT,0,oldT,1000,0)
+    Move(oldB,0,oldB,1000,0)
     Move(TPlayer,0,TPlayer,x,y-16)
     Move(BPlayer,0,BPlayer,x,y)
 
