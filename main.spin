@@ -41,6 +41,12 @@ PUB RunGame
   y := 150   
   y_min :=266
 
+  repeat until y == y_min
+    waitcnt(clkfreq/75 + cnt)
+    y := y +1
+    Move(0,0,TPlayer,x,y-16)
+    Move(1,0,BPlayer,x,y)
+
   'Intialize Flags
   mvmt := false
   jump := false
@@ -61,22 +67,22 @@ PUB RunGame
         player_rot:=0
         mvmt := true 
       %1111_0111 :    'Up Button
-        if y == y_min
+        if (GetCharacterXY(x,y+16)== 26) or ( GetCharacterXY(x,y+16)== 22) 
           jump := true
       %1111_0101 :    'Up and to the Left
-        if y == y_min
+        if (GetCharacterXY(x,y+16)== 26) or ( GetCharacterXY(x,y+16)== 22) 
           jump := true  
         x := x-1
         mvmt := true     'Up and to the Right
       %1111_0110 :
-        if y == y_min
+        if (GetCharacterXY(x,y+16)== 26) or ( GetCharacterXY(x,y+16)== 22) 
           jump := true
         x := x+1
         mvmt := 1      
       '%1111_1011 :   'Down Button                                              
         'y:=y+1
 
-    if y < y_min        'Gravity
+    if (GetCharacterXY(x,y+16)<> 26) AND ( GetCharacterXY(x,y+16)<> 22)  
       y := y+1
   
    'Update Player Character
@@ -89,7 +95,7 @@ PUB player_jump
 
   repeat
     if jump
-      repeat 24
+      repeat 36
         y := y-2
         waitcnt(clkfreq/100 + cnt)
       jump := 0
@@ -168,76 +174,58 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
   spacing:=5
   'Level one bricks
   j :=30 
-  repeat i from 0 to 5
+  repeat i from 5 to 20
     Draw(0,22,i,j)
-  repeat i from 9 to 30
+  repeat i from 25 to 30
     Draw(0,22,i,j)
-  repeat i from 40 to 49
+  repeat i from 40 to 45
     Draw(0,22,i,j)
 
   'Level two bricks
   j :=j-spacing 
-  repeat i from 0 to 5
+  repeat i from 0 to 12
     Draw(0,22,i,j)
-  repeat i from 9 to 30
+  repeat i from 20 to 31
     Draw(0,22,i,j)
   repeat i from 40 to 49
     Draw(0,22,i,j)
     
   'Level three bricks
   j :=j-spacing  
-  repeat i from 0 to 5
+  repeat i from 15 to 35
     Draw(0,22,i,j)
-  repeat i from 9 to 30
+  repeat i from 35 to 40
     Draw(0,22,i,j)
   repeat i from 40 to 49
     Draw(0,22,i,j)
 
    'Level four bricks
   j :=j-spacing  
-  repeat i from 0 to 5
+  repeat i from 0 to 6
     Draw(0,22,i,j)
-  repeat i from 9 to 30
+  repeat i from 12 to 18
     Draw(0,22,i,j)
-  repeat i from 40 to 49
+  repeat i from 25 to 49
     Draw(0,22,i,j)
 
    'Level five bricks
   j :=j-spacing  
-  repeat i from 0 to 5
+  repeat i from 25 to 35
     Draw(0,22,i,j)
-  repeat i from 9 to 30
+  repeat i from 36 to 41
     Draw(0,22,i,j)
-  repeat i from 40 to 49
+  repeat i from 47 to 49
     Draw(0,22,i,j)
 
    'Level six bricks
   j :=j-spacing  
-  repeat i from 0 to 5
+  repeat i from 0 to 3
     Draw(0,22,i,j)
-  repeat i from 9 to 30
+  repeat i from 19 to 30
     Draw(0,22,i,j)
-  repeat i from 40 to 49
+  repeat i from 45 to 49
     Draw(0,22,i,j)
-  {
-   'Level seven bricks
-  j :=7 
-  repeat i from 0 to 5
-    Draw(0,22,i,j)
-  repeat i from 9 to 30
-    Draw(0,22,i,j)
-  repeat i from 40 to 49
-    Draw(0,22,i,j)
-
-   'Level eight bricks
-  j :=3
-  repeat i from 0 to 5
-    Draw(0,22,i,j)
-  repeat i from 9 to 30
-    Draw(0,22,i,j)
-  repeat i from 40 to 49
-    Draw(0,22,i,j)
-  }
+  
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
