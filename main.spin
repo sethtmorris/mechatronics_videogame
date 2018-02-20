@@ -80,10 +80,10 @@ PUB RunGame
       y := y+1
   
    'Update Player Character
-    Rotate(TPlayer,player_rot) 
-    Rotate(BPlayer,player_rot) 
-    Move(TPlayer,0,0,x,y-16)
-    Move(BPlayer,0,1,x,y)
+    Rotate(0,player_rot) 
+    Rotate(1,player_rot) 
+    Move(0,0,TPlayer,x,y-16)
+    Move(1,0,BPlayer,x,y)
          
 PUB player_jump
 
@@ -137,8 +137,8 @@ PUB SelectCharacter |i, j, k
           TPlayer := TPlayer - 4
           BPlayer := BPlayer - 4
     waitcnt(clkfreq/7 + cnt)
-    Move(TPlayer,0,0,x,y-16)
-    Move(BPlayer,0,1,x,y)
+    Move(0,0,TPlayer,x,y-16)
+    Move(1,0,BPlayer,x,y)
 
   'Set Alternate Sprite Values
   Alt1Player := TPlayer + 2
