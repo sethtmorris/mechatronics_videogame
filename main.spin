@@ -9,6 +9,7 @@ CON
   latch=5
   data1=6
   data2=7
+  Propeller=8
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -61,7 +62,9 @@ PUB RunGame
       %1111_1101 :   'Left Button
         x:=x-1
         player_rot:=2
-        mvmt := true                                       
+        mvmt := true
+        'if(CheckCollision(0,2)) HOW DO I CHECK THE COLLISION FOR THE PROPELLER HAT
+        Move(21,2,8,5,250)                                      
       %1111_1110 :   'Right Button                                             
         x:=x+1     
         player_rot:=0
@@ -225,7 +228,8 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
     Draw(0,22,i,j)
   repeat i from 45 to 49
     Draw(0,22,i,j)
-  
+
+  Move(21,2,8,5,250)   'Initial position of the propeller hat
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
