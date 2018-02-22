@@ -9,7 +9,12 @@ CON
   latch=5
   data1=6
   data2=7
-  Propeller=8
+
+  
+  Propeller=21
+  RobotH=1
+  RobotL=2
+  RobotR=3
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -18,7 +23,8 @@ VAR
 
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
-  long x, y, y_min, spacing, player_rot 'vars for player posiion and rotation
+  long x, y, y_min, spacing, player_rot 'vars for player position and rotation
+  long x_p,y_p,count 'vars for propeller position
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt
@@ -41,7 +47,14 @@ PUB RunGame
   x := 200
   y := 150   
   y_min :=266
+  x_p :=5
+  y_p :=250
 
+  
+  Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat
+  count:= 1 'Propeller is on level 1
+
+  
   repeat until y == y_min
     waitcnt(clkfreq/75 + cnt)
     y := y +1
@@ -57,14 +70,28 @@ PUB RunGame
   
   repeat                              'Main loop
     UpdateAll
+           
+    if CheckCollision(Bplayer,Propeller) OR CheckCollision(Tplayer,Propeller)                           'Checks to see if Sprite #1 (Mario's legs) is colliding with Sprite 3 (Goomba)
+      y_p :=y_p-40
+      count:=count+1
+      if(count ==2)
+        Move(Propeller,2,8,350,y_p)
+      if(count ==3)
+        Move(Propeller,2,8,200,y_p)
+      if(count ==4)
+        Move(Propeller,2,8,375,y_p)
+      if(count ==5)
+        Move(Propeller,2,8,10,y_p)
+      if(count ==6)
+        Move(Propeller,2,8,260,y_p)
+      if(count ==7)
+        Move(Propeller,2,8,5,y_p)
 
     case C1buttons   'Controller Input / Character Control
       %1111_1101 :   'Left Button
         x:=x-1
         player_rot:=2
-        mvmt := true
-        'if(CheckCollision(0,2)) HOW DO I CHECK THE COLLISION FOR THE PROPELLER HAT
-        Move(21,2,8,5,250)                                      
+        mvmt := true                                            
       %1111_1110 :   'Right Button                                             
         x:=x+1     
         player_rot:=0
@@ -215,6 +242,8 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
   j :=j-spacing  
   repeat i from 25 to 35
     Draw(0,22,i,j)
+  repeat i from 8 to 13
+    Draw(0,22,i,j)
   repeat i from 36 to 41
     Draw(0,22,i,j)
   repeat i from 47 to 49
@@ -228,8 +257,7 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
     Draw(0,22,i,j)
   repeat i from 45 to 49
     Draw(0,22,i,j)
-
-  Move(21,2,8,5,250)   'Initial position of the propeller hat
+                                                                                                     
 
 
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
