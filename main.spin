@@ -28,16 +28,20 @@ VAR
   long chomp_x, chomp_y
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
-  byte jump, mvmt
+  byte jump, mvmt, firsttime
                    
 PUB Main 
-  gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values                  
-  Intro
+  gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
-  SelectCharacter                                                                  'Call the "Background" method (below) then return here and run the next line
-  Background 
-  RunGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
-
+  firsttime := 0
+  
+  repeat
+    Intro
+    SelectCharacter                                                                  'Call the "Background" method (below) then return here and run the next line
+    Background 
+    RunGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
+    Winning
+  
 PUB Intro
 
 
@@ -67,14 +71,13 @@ PUB RunGame
   mvmt := false
   jump := false
 
-  coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
-  coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
-  coginit(3,robot_chomper,@Stack3)    'Run robot chomper on cog 3
+  if firsttime == 0
+    coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
+    coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
+    coginit(3,robot_chomper,@Stack3)    'Run robot chomper on cog 3
   
-  repeat                              'Main loop
+  repeat until count > 7                             'Main loop
     UpdateAll
-
-    Move(0,1,
            
     if CheckCollision(Bplayer,Propeller) OR CheckCollision(Tplayer,Propeller)                           'Checks to see if Sprite #1 (Mario's legs) is colliding with Sprite 3 (Goomba)
       y_p :=y_p-40
@@ -118,8 +121,8 @@ PUB RunGame
         'y:=y+1
 
     y := gravity(x,y)
- '   x := xboundaries(x)
-  
+    x := xboundaries(x)
+
    'Update Player Character
     Rotate(0,player_rot) 
     Rotate(1,player_rot) 
@@ -132,9 +135,14 @@ PUB gravity(xcord, ycord)
       ycord := ycord+1
     return ycord
 
-'PUB xboundaries(xcord)
+PUB xboundaries(xcord)
 
-'    if 
+    if xcord > 390
+      xcord := 390
+    elseif xcord < 1
+      xcord := 1
+    return xcord
+         
 PUB player_jump
 
   repeat
@@ -143,6 +151,15 @@ PUB player_jump
         y := y-2
         waitcnt(clkfreq/100 + cnt)
       jump := 0
+
+PUB Winning 
+
+  repeat until (C1buttons == %0111_1111)
+    UpdateAll
+    gd.putstr(22,0,string("YOU WON!!!!"))
+    gd.putstr(22,1,string("Press A to Play Again."))
+  firsttime := firsttime + 1
+  waitcnt(clkfreq/10 + cnt)
 
 PUB animate_player
 
@@ -156,7 +173,7 @@ PUB animate_player
       waitcnt(clkfreq/10+cnt)
   
 
-PUB SelectCharacter |i, j, k
+PUB SelectCharacter | i, j, k
   repeat j from 0 to 37
     repeat i from 0 to 49
       Draw(0,0,i,j)
@@ -168,6 +185,8 @@ PUB SelectCharacter |i, j, k
   'Initial Sprite Values
   TPlayer := 0
   BPlayer := 1
+
+  UpdateAll
 
   repeat until (C1buttons == %0111_1111)
     UpdateAll
