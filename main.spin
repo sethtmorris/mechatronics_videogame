@@ -9,18 +9,15 @@ CON
   latch=5
   data1=6
   data2=7
-
-
-  Propeller=21
-  RobotH=1
-  RobotL=2
   RobotR=3
+  data2=7                         
   
   Propeller=6
   RobotHL=2
   RobotHR = 3
-  RobotL=4
   RobotR=5
+  RobotLL=4
+  RobotLR=5                                          
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -61,6 +58,7 @@ PUB RunGame
   Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat
   count:= 1 'Propeller is on level 1
 
+  PlaceChomper(200,185)
   
   repeat until y == y_min
     waitcnt(clkfreq/75 + cnt)
@@ -203,9 +201,11 @@ PUB SelectCharacter |i, j, k
 PUB Robot_Chomper
 
 PUB ChomperMovement
-
-
-
+PUB PlaceChomper(x_c,y_c) 'Places the lower left sprite of chomper at x,y
+  Move(RobotHL,1,0,x_c,y_c-16)
+  Move(RobotHR,1,1,x_c+16,y_c-16)
+  Move(RobotLL,1,2,x_c,y_c)
+  Move(RobotLR,1,3,x_c+16,y_c)
 
 PUB LittleGarnerMovement
 
