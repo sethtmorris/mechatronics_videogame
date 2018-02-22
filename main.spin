@@ -10,7 +10,7 @@ CON
   data1=6
   data2=7
 
-  
+
   Propeller=21
   RobotH=1
   RobotL=2
@@ -25,6 +25,7 @@ VAR
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, spacing, player_rot 'vars for player position and rotation
   long x_p,y_p,count 'vars for propeller position
+  long chomp_x, chomp_y
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt
@@ -67,9 +68,12 @@ PUB RunGame
 
   coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
   coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
+  coginit(3,robot_chomper,@Stack3)    'Run robot chomper on cog 3
   
   repeat                              'Main loop
     UpdateAll
+
+    Move(0,1,
            
     if CheckCollision(Bplayer,Propeller) OR CheckCollision(Tplayer,Propeller)                           'Checks to see if Sprite #1 (Mario's legs) is colliding with Sprite 3 (Goomba)
       y_p :=y_p-40
@@ -181,7 +185,10 @@ PUB SelectCharacter |i, j, k
   Alt2Player := TPlayer + 3
   feet := BPlayer        
 
+PUB Robot_Chomper
+
 PUB ChomperMovement
+
 
 
 
