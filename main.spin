@@ -8,14 +8,11 @@ CON
   clk=4
   latch=5
   data1=6
-  data2=7
-  RobotR=3
   data2=7                         
   
   Propeller=6
   RobotHL=2
   RobotHR = 3
-  RobotR=5
   RobotLL=4
   RobotLR=5                                          
 
