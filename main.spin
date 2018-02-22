@@ -28,11 +28,13 @@ VAR
   long chomp_x, chomp_y
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
-  byte jump, mvmt
+  byte jump, mvmt, firsttime
                    
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
   dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
+  firsttime := 0
+  
   repeat
     Intro
     SelectCharacter                                                                  'Call the "Background" method (below) then return here and run the next line
@@ -68,9 +70,10 @@ PUB RunGame
   mvmt := false
   jump := false
 
-  coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
-  coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
-  coginit(3,robot_chomper,@Stack3)    'Run robot chomper on cog 3
+  if firsttime == 0
+    coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
+    coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
+    coginit(3,robot_chomper,@Stack3)    'Run robot chomper on cog 3
   
   repeat until count > 7                             'Main loop
     UpdateAll
@@ -154,6 +157,8 @@ PUB Winning
     UpdateAll
     gd.putstr(22,0,string("YOU WON!!!!"))
     gd.putstr(22,1,string("Press A to Play Again."))
+  firsttime := firsttime + 1
+  waitcnt(clkfreq/10 + cnt)
 
 PUB animate_player
 
@@ -179,6 +184,8 @@ PUB SelectCharacter | i, j, k
   'Initial Sprite Values
   TPlayer := 0
   BPlayer := 1
+
+  UpdateAll
 
   repeat until (C1buttons == %0111_1111)
     UpdateAll
