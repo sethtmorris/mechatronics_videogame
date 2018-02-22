@@ -11,10 +11,11 @@ CON
   data2=7
 
   
-  Propeller=21
-  RobotH=1
-  RobotL=2
-  RobotR=3
+  Propeller=6
+  RobotHL=2
+  RobotHR = 3
+  RobotL=4
+  RobotR=5
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -112,15 +113,24 @@ PUB RunGame
       '%1111_1011 :   'Down Button                                              
         'y:=y+1
 
-    if (GetCharacterXY(x,y+16)<> 26) AND ( GetCharacterXY(x,y+16)<> 22)  
-      y := y+1
+    y := gravity(x,y)
+ '   x := xboundaries(x)
   
    'Update Player Character
     Rotate(0,player_rot) 
     Rotate(1,player_rot) 
     Move(0,0,TPlayer,x,y-16)
     Move(1,0,BPlayer,x,y)
-         
+
+PUB gravity(xcord, ycord)
+
+    if (GetCharacterXY(xcord+8,ycord+16)<> 26) AND ( GetCharacterXY(xcord+8,ycord+16)<> 22)  
+      ycord := ycord+1
+    return ycord
+
+'PUB xboundaries(xcord)
+
+'    if 
 PUB player_jump
 
   repeat
