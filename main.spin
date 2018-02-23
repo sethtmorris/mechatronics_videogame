@@ -1,4 +1,7 @@
-''Names
+'Names
+
+'TO DO 02/22 : (1) chomper movement + animation + collisions; (2) everything with little garner; (3) everything with a possible projectile; (4) everything with a 4th NPC (another chomper?);
+  '(5) death + lives + scorekeeping;(6) debug winning / game restart conditions; (7) animate / spice up intro / end screens (optional?)
 
 CON
   _xinfreq=6_250_000
@@ -7,14 +10,23 @@ CON
   'NES Controller interface pins
   clk=4
   latch=5
+<<<<<<< HEAD
   data1=6           
   data2=7          
                                                  
+=======
+  data1=6
+  data2=7                         
+
+'Sprite Number Shorthands  
+>>>>>>> ffcf67e41f1af2703f80a29e642570007ff95ac0
   Propeller=6
   RobotHL=2
   RobotHR = 3
   RobotLL=4
-  RobotLR=5                                          
+  RobotLR=5
+  player_top = 0
+  player_bottom = 1                                           
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -23,12 +35,14 @@ VAR
 
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
-  long x, y, y_min, spacing, player_rot 'vars for player position and rotation
-  long x_p,y_p,count 'vars for propeller position
-  long chomp_x, chomp_y
-  byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite shorthands for player : diff. from Demo prgm
+  long x, y, y_min, player_rot 'vars for player position and rotation
+  long spacing  'does something with the background? only called in one method ... better as a local var?
+  long x_p,y_p 'vars for propeller position
+  byte count 'var for number of propellers obtained
+  long chomp_x, chomp_y 'chomper position coodinates
+  byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
-  byte jump, mvmt, firsttime
+  byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
                    
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
@@ -36,11 +50,11 @@ PUB Main
   firsttime := 0
   
   repeat
-    Intro
-    SelectCharacter                                                                  'Call the "Background" method (below) then return here and run the next line
-    Background 
-    RunGame                                                         'Call the "VideoGame" method (note that even though this is the next line anyway, the program would not automatically run it without this specific method call). When a method runs out of code, it returns to from where it was called. It does not automatically start running the method beneath it. 
-    Winning
+    Intro              'Intro Sequence
+    SelectCharacter    'Character Selection                                                            
+    Background         'Background Drawing
+    RunGame            'Gameplay                                             
+    Winning            'Win Conditions
   
 PUB Intro
 
@@ -52,6 +66,8 @@ PUB RunGame
   x := 200
   y := 150   
   y_min :=266
+
+  'Propeller Initial Position
   x_p :=5
   y_p :=250
 
@@ -59,8 +75,9 @@ PUB RunGame
   Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat
   count:= 1 'Propeller is on level 1
 
-  PlaceChomper(200,185)
+  PlaceChomper(200,185) 'Initialize Chomper
   
+  'Player "falls" downscreen at beginning of game
   repeat until y == y_min
     waitcnt(clkfreq/75 + cnt)
     y := y +1
@@ -79,7 +96,7 @@ PUB RunGame
   repeat until count > 7                             'Main loop
     UpdateAll
            
-    if CheckCollision(Bplayer,Propeller) OR CheckCollision(Tplayer,Propeller)                           'Checks to see if Sprite #1 (Mario's legs) is colliding with Sprite 3 (Goomba)
+    if CheckCollision(Bplayer,Propeller) or CheckCollision(Tplayer,Propeller) 'checks for player-propeller collision / repositions propeller
       y_p :=y_p-40
       count:=count+1
       if(count ==2)
@@ -109,33 +126,37 @@ PUB RunGame
           jump := true
       %1111_0101 :    'Up and to the Left
         if (GetCharacterXY(x,y+16)== 26) or ( GetCharacterXY(x,y+16)== 22) 
-          jump := true  
+          jump := true
+        player_rot:=2    
         x := x-1
-        mvmt := true     'Up and to the Right
-      %1111_0110 :
+        mvmt := true     
+      %1111_0110 :       'Up and to the Right
         if (GetCharacterXY(x,y+16)== 26) or ( GetCharacterXY(x,y+16)== 22) 
           jump := true
         x := x+1
+        player_rot:=0
         mvmt := 1      
       '%1111_1011 :   'Down Button                                              
         'y:=y+1
 
-    y := gravity(x,y)
-    x := xboundaries(x)
+    y := gravity(x,y)   'Check to see if player is standing on solid ground
+    x := xboundaries(x) 'Check to see if player is hitting edge of visible screen
 
    'Update Player Character
     Rotate(0,player_rot) 
     Rotate(1,player_rot) 
-    Move(0,0,TPlayer,x,y-16)
-    Move(1,0,BPlayer,x,y)
+    Move(player_top,0,TPlayer,x,y-16)
+    Move(player_bottom,0,BPlayer,x,y)
 
 PUB gravity(xcord, ycord)
+'Implements gravity for a sprite at position xcord, ycord
 
-    if (GetCharacterXY(xcord+8,ycord+16)<> 26) AND ( GetCharacterXY(xcord+8,ycord+16)<> 22)  
+    if (GetCharacterXY(xcord+8,ycord+16)<> 26) and ( GetCharacterXY(xcord+8,ycord+16)<> 22)  
       ycord := ycord+1
     return ycord
 
 PUB xboundaries(xcord)
+'Implements x-boundaries for a sprite at position xcord
 
     if xcord > 390
       xcord := 390
@@ -144,6 +165,7 @@ PUB xboundaries(xcord)
     return xcord
          
 PUB player_jump
+'Implements jumping for a player character, designed to be run on seperate cog
 
   repeat
     if jump
@@ -153,8 +175,9 @@ PUB player_jump
       jump := 0
 
 PUB Winning 
+'Displayed if win conditions satisfied
 
-  repeat until (C1buttons == %0111_1111)
+  repeat until (C1buttons == %0111_1111)  'Runs until A button pressed
     UpdateAll
     gd.putstr(22,0,string("YOU WON!!!!"))
     gd.putstr(22,1,string("Press A to Play Again."))
@@ -162,6 +185,7 @@ PUB Winning
   waitcnt(clkfreq/10 + cnt)
 
 PUB animate_player
+'Implements animation for player character legs, designed to be run on seperate cog
 
   repeat
     if BPlayer == feet and mvmt
@@ -174,6 +198,9 @@ PUB animate_player
   
 
 PUB SelectCharacter | i, j, k
+'Character Selection Method, runs before start of main game
+
+'Draw Background
   repeat j from 0 to 37
     repeat i from 0 to 49
       Draw(0,0,i,j)
@@ -188,7 +215,7 @@ PUB SelectCharacter | i, j, k
 
   UpdateAll
 
-  repeat until (C1buttons == %0111_1111)
+  repeat until (C1buttons == %0111_1111)                'repeats until A button pushed
     UpdateAll
     
     'Display Text
@@ -206,8 +233,8 @@ PUB SelectCharacter | i, j, k
           TPlayer := TPlayer - 4
           BPlayer := BPlayer - 4
     waitcnt(clkfreq/7 + cnt)
-    Move(0,0,TPlayer,x,y-16)
-    Move(1,0,BPlayer,x,y)
+    Move(player_top,0,TPlayer,x,y-16)
+    Move(player_bottom,0,BPlayer,x,y)
 
   'Set Alternate Sprite Values
   Alt1Player := TPlayer + 2
@@ -217,7 +244,8 @@ PUB SelectCharacter | i, j, k
 PUB Robot_Chomper
 
 PUB ChomperMovement
-PUB PlaceChomper(x_c,y_c) 'Places the lower left sprite of chomper at x,y
+PUB PlaceChomper(x_c,y_c) 'Places the lower left sprite of chomper at x,y MUST BE RUN FROM COG0
+
   Move(RobotHL,1,0,x_c,y_c-16)
   Move(RobotHR,1,1,x_c+16,y_c-16)
   Move(RobotLL,1,2,x_c,y_c)
