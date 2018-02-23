@@ -1,4 +1,4 @@
-''Names
+'Names
 
 'TO DO 02/22 : (1) chomper movement + animation + collisions; (2) everything with little garner; (3) everything with a possible projectile; (4) everything with a 4th NPC (another chomper?);
   '(5) death + lives + scorekeeping;(6) debug winning / game restart conditions; (7) animate / spice up intro / end screens (optional?)
@@ -30,7 +30,7 @@ VAR
   byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, player_rot 'vars for player position and rotation
-  long spacing  'does something with the background?
+  long spacing  'does something with the background? only called in one method ... better as a local var?
   long x_p,y_p 'vars for propeller position
   byte count 'var for number of propellers obtained
   long chomp_x, chomp_y 'chomper position coodinates
@@ -90,7 +90,7 @@ PUB RunGame
   repeat until count > 7                             'Main loop
     UpdateAll
            
-    if CheckCollision(Bplayer,Propeller) OR CheckCollision(Tplayer,Propeller) 'checks for player-propeller collision / repositions propeller
+    if CheckCollision(Bplayer,Propeller) or CheckCollision(Tplayer,Propeller) 'checks for player-propeller collision / repositions propeller
       y_p :=y_p-40
       count:=count+1
       if(count ==2)
