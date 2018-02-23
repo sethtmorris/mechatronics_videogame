@@ -7,9 +7,9 @@ CON
   'NES Controller interface pins
   clk=4
   latch=5
-  data1=6
-  data2=7                         
-  
+  data1=6           
+  data2=7          
+                                                 
   Propeller=6
   RobotHL=2
   RobotHR = 3
