@@ -9,17 +9,11 @@ CON
 
   'NES Controller interface pins
   clk=4
-  latch=5
-<<<<<<< HEAD
+  latch=5    
   data1=6           
-  data2=7          
-                                                 
-=======
-  data1=6
   data2=7                         
 
-'Sprite Number Shorthands  
->>>>>>> ffcf67e41f1af2703f80a29e642570007ff95ac0
+'Sprite Number Shorthands                             
   Propeller=6
   RobotHL=2
   RobotHR = 3
