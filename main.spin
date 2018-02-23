@@ -19,6 +19,7 @@ CON
   RobotHR = 3
   RobotLL=4
   RobotLR=5
+  Laser=8
   player_top = 0
   player_bottom = 1                                           
 
@@ -27,13 +28,13 @@ OBJ
 
 VAR
 
-  byte collisions[256], OldChar[12]                                 'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
+  byte collisions[256], OldChar[12]                                'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, player_rot 'vars for player position and rotation
   long spacing  'does something with the background? only called in one method ... better as a local var?
   long x_p,y_p 'vars for propeller position
-  byte count 'var for number of propellers obtained
-  long chomp_x, chomp_y 'chomper position coodinates
+  byte count,nu,lives,laser_x,laser_y 'var for number of propellers obtained
+  long chomp_x, chomp_y, ChompRot 'chomper position coodinates
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
@@ -55,7 +56,7 @@ PUB Intro
 
 
 PUB RunGame
-
+  lives :=5
   'Player Initial Position
   x := 200
   y := 150   
@@ -68,8 +69,14 @@ PUB RunGame
   
   Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat
   count:= 1 'Propeller is on level 1
-
-  PlaceChomper(200,185) 'Initialize Chomper
+  
+  chomp_x :=200
+  chomp_y :=185
+  laser_x :=385
+  laser_y :=chomp_y-16
+  nu:=0 'Initialize Chomper
+  UpdateChomper
+  Move(laser,1,15,450,450)
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
@@ -85,8 +92,8 @@ PUB RunGame
   if firsttime == 0
     coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
     coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
-    coginit(3,robot_chomper,@Stack3)    'Run robot chomper on cog 3
-  
+    coginit(3,ChomperMotion,@Stack3)    'Run robot chomper on cog 3
+    coginit(4,ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
   repeat until count > 7                             'Main loop
     UpdateAll
            
@@ -94,17 +101,33 @@ PUB RunGame
       y_p :=y_p-40
       count:=count+1
       if(count ==2)
-        Move(Propeller,2,8,350,y_p)
+        Move(Propeller,2,8,215,y_p)
       if(count ==3)
-        Move(Propeller,2,8,200,y_p)
+        Move(Propeller,2,8,350,y_p)
       if(count ==4)
-        Move(Propeller,2,8,375,y_p)
+        Move(Propeller,2,8,175,y_p)
       if(count ==5)
         Move(Propeller,2,8,10,y_p)
       if(count ==6)
         Move(Propeller,2,8,260,y_p)
       if(count ==7)
         Move(Propeller,2,8,5,y_p)
+        
+    if CheckCollision(Bplayer,RobotHL) or CheckCollision(Bplayer,RobotLR) or CheckCollision(Bplayer,RobotLL) or CheckCollision(Bplayer,RobotHR)
+      lives := lives-1
+      x := 200
+      y := y_min
+      Flash(5)
+      lives :=lives-1 
+      Move(0,0,TPlayer,x,y-16)
+      Move(1,0,BPlayer,x,y)  
+    if CheckCollision(Tplayer,RobotHL) or CheckCollision(Tplayer,RobotLR) or CheckCollision(Tplayer,RobotLL) or CheckCollision(Tplayer,RobotHR)
+      x := 200
+      y := y_min 
+      Flash(5)
+      lives := lives-1
+      Move(0,0,TPlayer,x,y-16)
+      Move(1,0,BPlayer,x,y) 
 
     case C1buttons   'Controller Input / Character Control
       %1111_1101 :   'Left Button
@@ -141,6 +164,80 @@ PUB RunGame
     Rotate(1,player_rot) 
     Move(player_top,0,TPlayer,x,y-16)
     Move(player_bottom,0,BPlayer,x,y)
+
+    Move(laser,1,15,laser_x,laser_y)
+
+    UpdateChomper
+PUB Flash(numFlashes)
+  repeat until numFlashes=<0
+    Move(0,0,TPlayer,x,y-16)
+    Move(1,0,BPlayer,x,y)
+    waitcnt(clkfreq/10+cnt)
+    Move(0,0,TPlayer,450,450)
+    Move(1,0,BPlayer,450,450)
+    waitcnt(clkfreq/10+cnt)
+    numFlashes :=numFlashes-1
+PUB UpdateChomper
+  if nu ==0      'Initial position of the chomper sprite
+    Move(RobotHL,1,0,chomp_x,chomp_y-16)
+    Move(RobotHR,1,1,chomp_x+16,chomp_y-16)
+    Move(RobotLL,1,2,chomp_x,chomp_y)
+    Move(RobotLR,1,3,chomp_x+16,chomp_y)
+  if nu == 1      'If the chomper is moving to the left
+    RotateChomper
+    Move(RobotHL,1,0,chomp_x,chomp_y-16)
+    Move(RobotHR,1,1,chomp_x-16,chomp_y-16)
+    Move(RobotLL,1,2,chomp_x,chomp_y)
+    Move(RobotLR,1,3,chomp_x-16,chomp_y)
+  if nu == 2      'If the chomper is moving to the right
+    RotateChomper
+    Move(RobotHL,1,0,chomp_x,chomp_y-16)
+    Move(RobotHR,1,1,chomp_x+16,chomp_y-16)
+    Move(RobotLL,1,2,chomp_x,chomp_y)
+    Move(RobotLR,1,3,chomp_x+16,chomp_y)
+    
+  if chomp_x ==382 OR chomp_x ==178   'If the chomper hits a wall
+    RotateChomper
+ 
+PUB ChomperMotion
+  repeat
+    repeat until chomp_x=>382
+      nu:=2
+      chomp_x:=chomp_x+2
+      waitcnt(clkfreq/12+cnt)
+    repeat until chomp_x=<176
+      nu:=1
+      chomp_x:=chomp_x-2 
+      waitcnt(clkfreq/12+cnt)
+      
+PUB ChomperLaser
+  repeat
+   ' laser_x:=chomp_x-16
+    'laser_y:=450
+    'if nu==1
+      repeat until laser_x=<0
+        laser_x:=laser_x-10
+        waitcnt(clkfreq/12+cnt)
+    {
+    if nu==2
+      repeat until laser_x=>385
+        laser_x:=laser_x+10
+        waitcnt(clkfreq/12+cnt)}
+    waitcnt(clkfreq*10+cnt)
+    
+      
+PUB RotateChomper 'if n is 1 then the chomper is going left, if n is 2 the chomper is going right
+    if nu ==1
+      Rotate(RobotHR, 2)
+      Rotate(RobotHL, 2)
+      Rotate(RobotLL, 2)
+      Rotate(RobotLR, 2)                 
+    if nu ==2
+      Rotate(RobotHR, 0)
+      Rotate(RobotHL, 0)
+      Rotate(RobotLL, 0)
+      Rotate(RobotLR, 0)
+       
 
 PUB gravity(xcord, ycord)
 'Implements gravity for a sprite at position xcord, ycord
@@ -235,15 +332,7 @@ PUB SelectCharacter | i, j, k
   Alt2Player := TPlayer + 3
   feet := BPlayer        
 
-PUB Robot_Chomper
 
-PUB ChomperMovement
-PUB PlaceChomper(x_c,y_c) 'Places the lower left sprite of chomper at x,y MUST BE RUN FROM COG0
-
-  Move(RobotHL,1,0,x_c,y_c-16)
-  Move(RobotHR,1,1,x_c+16,y_c-16)
-  Move(RobotLL,1,2,x_c,y_c)
-  Move(RobotLR,1,3,x_c+16,y_c)
 
 PUB LittleGarnerMovement
 
@@ -267,25 +356,19 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
   repeat i from 5 to 20
     Draw(0,22,i,j)
   repeat i from 25 to 30
-    Draw(0,22,i,j)
-  repeat i from 40 to 45
-    Draw(0,22,i,j)
+    Draw(0,22,i,j)   
 
   'Level two bricks
   j :=j-spacing 
-  repeat i from 0 to 12
+  repeat i from 0 to 9
     Draw(0,22,i,j)
-  repeat i from 20 to 31
-    Draw(0,22,i,j)
-  repeat i from 40 to 49
+  repeat i from 20 to 49
     Draw(0,22,i,j)
     
   'Level three bricks
   j :=j-spacing  
-  repeat i from 15 to 35
-    Draw(0,22,i,j)
-  repeat i from 35 to 40
-    Draw(0,22,i,j)
+  repeat i from 15 to 30
+    Draw(0,22,i,j)       
   repeat i from 40 to 49
     Draw(0,22,i,j)
 
@@ -295,14 +378,14 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
     Draw(0,22,i,j)
   repeat i from 12 to 18
     Draw(0,22,i,j)
-  repeat i from 25 to 49
+  repeat i from 30 to 40
     Draw(0,22,i,j)
 
    'Level five bricks
   j :=j-spacing  
   repeat i from 25 to 35
     Draw(0,22,i,j)
-  repeat i from 8 to 13
+  repeat i from 8 to 15
     Draw(0,22,i,j)
   repeat i from 36 to 41
     Draw(0,22,i,j)
