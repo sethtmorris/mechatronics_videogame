@@ -37,6 +37,11 @@ CON
   BG13 =22
   BG14 =23
   BG15 =24
+  LGarnerHead=0
+  LGarnerLegs=1
+  static_discharge_1=12
+  static_discharge_2=14
+  static_discharge_3=15 
                                           
 
 OBJ
@@ -93,6 +98,11 @@ PUB RunGame
   nu:=0 'Initialize Chomper
   UpdateChomper
   Move(laser,1,15,450,450)
+
+  lgarner_x := 200
+  lgarner_y := 25
+  lgarner_dir := 1
+  UpdateLittleGarner 
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
@@ -110,6 +120,9 @@ PUB RunGame
     coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
     coginit(3,ChomperMotion,@Stack3)    'Run robot chomper on cog 3
     coginit(4,ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
+    coginit(5, LittleGarnerMotion,@Stack5) 'Run little garner on cog 5.
+    coginit(6, StaticDischarge, @Stack6)
+
   repeat until count > 7                             'Main loop
     UpdateAll
     gd.putstr(0,0,string("Health"))
@@ -185,6 +198,7 @@ PUB RunGame
     Move(laser,1,15,laser_x,laser_y)
 
     UpdateChomper
+    UpdateLittleGarner
     EasterEgg
 
 PUB CheckCollisionChomper(SpriteT, SpriteB)
@@ -294,8 +308,51 @@ PUB RotateChomper 'if n is 1 then the chomper is going left, if n is 2 the chomp
       Rotate(RobotLL, 0)
       Rotate(RobotLR, 0)
        
-PUB LittleGarnerMovement
+PUB LittleGarnerMotion
+  repeat
+    repeat until lgarner_x => 230
+      lgarner_dir := 1
+      lgarner_x := lgarner_x+3
+      waitcnt(clkfreq/11+cnt)
+    repeat until lgarner_x =< 149
+      lgarner_dir := 2  
+      lgarner_x := lgarner_x-3
+      waitcnt(clkfreq/11+cnt)
 
+PUB UpdateLittleGarner
+  if lgarner_dir == 1
+    Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
+    Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
+  else 'lgarner_dir == 2
+    Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
+    Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
+  
+  if lgarner_x == 149
+    StaticDischarge
+    RotateLittleGarner
+
+  if lgarner_x == 230
+    RotateLittleGarner    
+
+PUB RotateLittleGarner
+  if lgarner_dir == 1
+    Rotate(LGarnerHead, 2)
+    Rotate(LGarnerLegs, 2)
+  else
+    Rotate(LGarnerHead, 0)
+    Rotate(LGarnerLegs, 0)
+
+PUB StaticDischarge
+    Move(static_discharge_1, 2, 12, lgarner_x - 16, lgarner_y)
+    Rotate(12,2)
+    Move(static_discharge_2, 2, 14, lgarner_x - 32, lgarner_y)
+    Rotate(14,2)
+    Move(static_discharge_3, 2, 15, lgarner_x - 48, lgarner_y)
+    Rotate(15,2)
+    waitcnt(clkfreq/3+cnt)
+    Move(static_discharge_1, 2, 12, 184, 36)
+    Move(static_discharge_2, 2, 14, 200, 36)
+    Move(static_discharge_3, 2, 15, 216, 36)
 
 PUB gravity(xcord, ycord)
 'Implements gravity for a sprite at position xcord, ycord
