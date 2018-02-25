@@ -21,13 +21,28 @@ CON
   RobotLR=5
   Laser=8
   player_top = 0
-  player_bottom = 1                                           
+  player_bottom = 1
+  BG1 = 9
+  BG2 =10
+  BG3 =11
+  BG4  =12
+  BG5  =13
+  BG6   =14
+  BG7  =15
+  BG8  =16
+  BG9  =17
+  BG10 =18
+  BG11 =19
+  BG12 =20
+  BG13 =22
+  BG14 =23
+  BG15 =24
+                                          
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
 
 VAR
-
   byte collisions[256], OldChar[12]                                'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, player_rot 'vars for player position and rotation
@@ -38,6 +53,7 @@ VAR
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
+  byte bg_x, bg_y
                    
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
@@ -96,8 +112,13 @@ PUB RunGame
     coginit(4,ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
   repeat until count > 7                             'Main loop
     UpdateAll
-           
-    if CheckCollision(Bplayer,Propeller) or CheckCollision(Tplayer,Propeller) 'checks for player-propeller collision / repositions propeller
+    gd.putstr(0,0,string("Health"))
+    gd.putstr(7,0,string("     "))  'actual health bar (For some reason doesn't show up unless this is here)
+    CheckLives 
+      
+    
+    'Checks collisions between propeller hat and player, repositions propeller up one level       
+    if CheckCollision(player_bottom,Propeller) or CheckCollision(player_top,Propeller)
       y_p :=y_p-40
       count:=count+1
       if(count ==2)
@@ -112,22 +133,18 @@ PUB RunGame
         Move(Propeller,2,8,260,y_p)
       if(count ==7)
         Move(Propeller,2,8,5,y_p)
-        
-    if CheckCollision(Bplayer,RobotHL) or CheckCollision(Bplayer,RobotLR) or CheckCollision(Bplayer,RobotLL) or CheckCollision(Bplayer,RobotHR)
-      lives := lives-1
-      x := 200
-      y := y_min
-      Flash(5)
-      lives :=lives-1 
-      Move(0,0,TPlayer,x,y-16)
-      Move(1,0,BPlayer,x,y)  
-    if CheckCollision(Tplayer,RobotHL) or CheckCollision(Tplayer,RobotLR) or CheckCollision(Tplayer,RobotLL) or CheckCollision(Tplayer,RobotHR)
+
+   'Checks collisions between Chomper and Player, repositions player at beginning, docs a life    
+    CheckCollisionChomper(player_top,player_bottom)
+
+    'Checks collisions between Laser and Player, repositions player at beginning, docs a life
+    if CheckCollision(player_bottom,Laser) or CheckCollision(player_top,Laser)
       x := 200
       y := y_min 
       Flash(5)
       lives := lives-1
-      Move(0,0,TPlayer,x,y-16)
-      Move(1,0,BPlayer,x,y) 
+      Move(0,0,player_top,x,y-16)
+      Move(1,0,player_bottom,x,y)
 
     case C1buttons   'Controller Input / Character Control
       %1111_1101 :   'Left Button
@@ -152,10 +169,10 @@ PUB RunGame
           jump := true
         x := x+1
         player_rot:=0
-        mvmt := 1      
+        mvmt := 1
       '%1111_1011 :   'Down Button                                              
         'y:=y+1
-
+  
     y := gravity(x,y)   'Check to see if player is standing on solid ground
     x := xboundaries(x) 'Check to see if player is hitting edge of visible screen
 
@@ -168,6 +185,40 @@ PUB RunGame
     Move(laser,1,15,laser_x,laser_y)
 
     UpdateChomper
+    EasterEgg
+
+PUB CheckCollisionChomper(SpriteT, SpriteB)
+    if CheckCollision(SpriteB,RobotHL) or CheckCollision(SpriteB,RobotLR) or CheckCollision(SpriteB,RobotLL) or CheckCollision(SpriteB,RobotHR)
+      lives := lives-1
+      x := 200
+      y := y_min
+      Flash(5)        
+      Move(0,0,SpriteT,x,y-16)
+      Move(1,0,SpriteB,x,y)  
+    if CheckCollision(SpriteT,RobotHL) or CheckCollision(SpriteT,RobotLR) or CheckCollision(SpriteT,RobotLL) or CheckCollision(SpriteT,RobotHR)
+      x := 200
+      y := y_min 
+      Flash(5)
+      lives := lives-1
+      Move(0,0,SpriteT,x,y-16)
+      Move(1,0,SpriteB,x,y)
+
+PUB CheckLives | i
+    if lives <> 0                     
+      repeat i from 7 to (6+lives)
+        Draw(0,3,i,0)
+                           
+    if lives == 0
+      repeat until (C1buttons == %0111_1111)  'Runs until A button pressed 
+        gd.putstr(22,0,string("YOU LOST!"))
+        gd.putstr(22,1,string("Press A to Play Again."))
+      firsttime := firsttime + 1
+      lives:=5
+     waitcnt(clkfreq/10 + cnt)
+
+  
+
+  
 PUB Flash(numFlashes)
   repeat until numFlashes=<0
     Move(0,0,TPlayer,x,y-16)
@@ -177,6 +228,7 @@ PUB Flash(numFlashes)
     Move(1,0,BPlayer,450,450)
     waitcnt(clkfreq/10+cnt)
     numFlashes :=numFlashes-1
+    
 PUB UpdateChomper
   if nu ==0      'Initial position of the chomper sprite
     Move(RobotHL,1,0,chomp_x,chomp_y-16)
@@ -215,9 +267,9 @@ PUB ChomperLaser
    ' laser_x:=chomp_x-16
     'laser_y:=450
     'if nu==1
-      repeat until laser_x=<0
-        laser_x:=laser_x-10
-        waitcnt(clkfreq/12+cnt)
+   ' repeat until laser_x=<0
+   '   laser_x:=laser_x-10
+   '   waitcnt(clkfreq/12+cnt)
     {
     if nu==2
       repeat until laser_x=>385
@@ -238,11 +290,13 @@ PUB RotateChomper 'if n is 1 then the chomper is going left, if n is 2 the chomp
       Rotate(RobotLL, 0)
       Rotate(RobotLR, 0)
        
+PUB LittleGarnerMovement
+
 
 PUB gravity(xcord, ycord)
 'Implements gravity for a sprite at position xcord, ycord
 
-    if (GetCharacterXY(xcord+8,ycord+16)<> 26) and ( GetCharacterXY(xcord+8,ycord+16)<> 22)  
+    if (GetCharacterXY(xcord+8,ycord+16)<> 26) and ( GetCharacterXY(xcord+8,ycord+16)<> 22) AND ( GetCharacterXY(xcord+8,ycord+16)<> 18)  AND ( GetCharacterXY(xcord+8,ycord+16)<> 19)
       ycord := ycord+1
     return ycord
 
@@ -255,15 +309,6 @@ PUB xboundaries(xcord)
       xcord := 1
     return xcord
          
-PUB player_jump
-'Implements jumping for a player character, designed to be run on seperate cog
-
-  repeat
-    if jump
-      repeat 36
-        y := y-2
-        waitcnt(clkfreq/100 + cnt)
-      jump := 0
 
 PUB Winning 
 'Displayed if win conditions satisfied
@@ -286,6 +331,16 @@ PUB animate_player
     if BPlayer == Alt2Player
       BPlayer := feet
       waitcnt(clkfreq/10+cnt)
+      
+PUB player_jump
+'Implements jumping for a player character, designed to be run on seperate cog
+
+  repeat
+    if jump
+      repeat 36
+        y := y-2
+        waitcnt(clkfreq/100 + cnt)
+      jump := 0
   
 
 PUB SelectCharacter | i, j, k
@@ -333,11 +388,7 @@ PUB SelectCharacter | i, j, k
   feet := BPlayer        
 
 
-
-PUB LittleGarnerMovement
-
-
-
+'------------------------------------------ DRAW BACKGROUND --------------------------------------------
 PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
   'This repeat loop just sets the background to black, might not be necessary in the final run but is convenient for testing
   repeat j from 0 to 37
@@ -402,7 +453,148 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
     Draw(0,22,i,j)
                                                                                                      
 
+PUB EasterEgg
+    if x => 381 AND y == 64 AND C1buttons == %1111_1011
+      EasterEggBackground
+      Move(Propeller,2,8,x_p,y_p)
+      Move(laser,1,15,laser_x,laser_y)
+      PlaceBigGarner
+      gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))
+         
+  
+PUB EasterEggBackground | i,j
+'Draw the ground
+  j :=35
+  repeat j from 35 to 37     'Draw underground
+    repeat i from 0 to 49
+        Draw(0,19,i,j)
+  repeat i from 0 to 49      'Draw grassy top ground
+    Draw(0,18,i,34)
+  repeat j from 0 to 33     'Fill in the sky
+    repeat i from 0 to 49
+        Draw(0,4,i,j)
 
+  repeat j from 2 to 5
+    repeat i from 43 to 46
+      Draw(0,5,i,j)
+  Draw(0,5,42,6)    'Bottom Left diagonal ray
+  Draw(0,5,41,7)
+  Draw(0,5,40,8)
+
+  Draw(0,5,45,6)    'Bottom Ray
+  Draw(0,5,45,7)
+  Draw(0,5,45,8)
+  
+  Draw(0,5,45,1)    'Top Ray
+  Draw(0,5,45,0)
+  
+  Draw(0,5,47,6)    'Bottom Right diagonal ray
+  Draw(0,5,48,7)
+  Draw(0,5,49,8)
+
+  Draw(0,5,47,1)    'Top Right diagonal ray
+  Draw(0,5,48,0)
+
+  Draw(0,5,42,1)    'Top Left diagonal ray
+  Draw(0,5,41,0)
+
+  Draw(0,5,47,3)    'Right Ray
+  Draw(0,5,48,3)
+  Draw(0,5,49,3) 
+
+  Draw(0,5,42,3)    'Left Ray
+  Draw(0,5,41,3)
+  Draw(0,5,40,3)
+
+  DrawTree(10,34)
+  DrawTree(22,34)
+  DrawTree(40,34)
+  
+  chomp_x := 450
+  chomp_y := 450
+  laser_x :=450 
+  laser_y :=450
+  x_p := 450
+  y_p := 450                   
+
+PUB PlaceBigGarner
+  bg_x :=0
+  bg_y :=0
+  Move(BG1,3,0,bg_x,bg_y)
+  Move(BG2,3,1,bg_x+16,bg_y)
+  Move(BG3,3,2,bg_x+32,bg_y)
+  Move(BG4,3,3,bg_x,bg_y+16)
+  Move(BG5,3,4,bg_x+16,bg_y+16)
+  Move(BG6,3,5,bg_x+32,bg_y+16)
+  Move(BG7,3,6,bg_x,bg_y+32)
+  Move(BG8,3,7,bg_x+16,bg_y+32)
+  Move(BG9,3,8,bg_x+32,bg_y+32)
+  Move(BG10,3,9,bg_x,bg_y+48)
+  Move(BG11,3,10,bg_x+16,bg_y+48)
+  Move(BG12,3,11,bg_x+32,bg_y+48)
+  Move(BG13,3,12,bg_x,bg_y+64)
+  Move(BG14,3,13,bg_x+16,bg_y+64)
+  Move(BG15,3,14,bg_x+32,bg_y+64)
+
+PUB DrawTree(xcoord, ycoord) | i,j
+  repeat i from xcoord to xcoord+2     'Draw trunk
+    repeat j from ycoord to ycoord-17
+      Draw(0,19,i,j)
+      
+  Draw(0,12,xcoord+3,ycoord-3)    'Right diagonal branch
+  Draw(0,12,xcoord+4,ycoord-5)
+  Draw(0,12,xcoord+5,ycoord-6)
+  Draw(0,12,xcoord+6,ycoord-7)
+  Draw(0,12,xcoord+7,ycoord-8)
+  
+  Draw(0,12,xcoord+3,ycoord-6)    'Right diagonal branch
+  Draw(0,12,xcoord+4,ycoord-7)
+  Draw(0,12,xcoord+5,ycoord-8)
+  Draw(0,12,xcoord+6,ycoord-9)
+  Draw(0,12,xcoord+7 ,ycoord-10)
+
+  Draw(0,12,xcoord+3,ycoord-10)    'Right diagonal branch
+  Draw(0,12,xcoord+4,ycoord-11)
+  Draw(0,12,xcoord+5,ycoord-12)
+  Draw(0,12,xcoord+6,ycoord-13)
+
+  Draw(0,12,xcoord+3,ycoord-14)    'Right diagonal branch
+  Draw(0,12,xcoord+4,ycoord-15)
+  Draw(0,12,xcoord+5,ycoord-16)
+
+  Draw(0,12,xcoord+3,ycoord-16)    'Right diagonal branch
+  Draw(0,12,xcoord+4,ycoord-17) 
+  
+  Draw(0,12,xcoord-1,ycoord-3)    'Left diagonal branch
+  Draw(0,12,xcoord-2,ycoord-4)
+  Draw(0,12,xcoord-3,ycoord-5)
+  Draw(0,12,xcoord-4,ycoord-6)
+  Draw(0,12,xcoord-4,ycoord-7)
+
+  Draw(0,12,xcoord-1,ycoord-8)    'Left diagonal branch
+  Draw(0,12,xcoord-2,ycoord-9)
+  Draw(0,12,xcoord-3,ycoord-10)
+  Draw(0,12,xcoord-4,ycoord-11)
+  
+  Draw(0,12,xcoord-1,ycoord-12)    'Left diagonal branch
+  Draw(0,12,xcoord-2,ycoord-13)
+  Draw(0,12,xcoord-3,ycoord-14)
+  
+  Draw(0,12,xcoord-1,ycoord-15)    'Left diagonal branch
+  Draw(0,12,xcoord-2,ycoord-16)
+  Draw(0,12,xcoord-3,ycoord-17)
+
+  Draw(0,12,xcoord+1,ycoord-18)    'Top Branch
+  Draw(0,12,xcoord+1,ycoord-19)
+  Draw(0,12,xcoord+1,ycoord-20)
+
+  Draw(0,12,xcoord,ycoord-17)
+  Draw(0,12,xcoord-1,ycoord-18)
+  Draw(0,12,xcoord+2,ycoord-17)
+  Draw(0,12,xcoord+3,ycoord-18)
+
+  
+    
 CON ''WARNING: Do NOT try to call any of the methods below from different cogs at the same time! (These ask the Gameduino driver on Cog 7 to do things, and it can only do one thing at a time and may get confused/corrupted if more than one cog tries to send commands to it at exactly the same time.)
 
 PUB Move(SpriteNumber,SpriteSection,SpriteImage,Xposition,Yposition) | rotation, N,AB             'Move a sprite around on the screen (note that the entire screen in the Gameduino's memory is 512x512 pixels but only a 400x300 section of it is actually displayed on the monitor - depending on where you've scrolled)
