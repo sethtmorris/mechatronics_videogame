@@ -1,6 +1,6 @@
 'Names
 
-'TO DO 02/22 : (1) chomper movement + animation + collisions; (2) everything with little garner; (3) everything with a possible projectile; (4) everything with a 4th NPC (another chomper?);
+'TO DO 02/22 : (1) chomper movement + animation + collisions; (2) fixing little garner rotation.(4) everything with a 4th NPC (another chomper?);
   '(6) debug winning / game restart conditions; (7) animate / spice up intro / end screens (optional?)
 
 CON
@@ -57,6 +57,7 @@ VAR
   long chomp_x, chomp_y, ChompRot 'chomper position coodinates
   long lgarner_x, lgarner_y
   byte lgarner_dir
+  byte alt1LGarnerLegs, alt2LGarnerLegs, lGarnerMvmt
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
@@ -75,8 +76,14 @@ PUB Main
     Winning            'Win Conditions
   
 PUB Intro
-
-
+  'bg_x :=200
+  'bg_y :=200
+  'PlaceBigGarner
+  'gd.putstr(15,10,string("Story")) 
+  'waitcnt(clkfreq*5 + cnt)
+  'bg_x :=300
+  'bg_y :=300
+  'PlaceBigGarner 'Move out of the way.
 
 PUB RunGame
   lives :=5
@@ -101,6 +108,8 @@ PUB RunGame
   lgarner_x := 200
   lgarner_y := 25
   lgarner_dir := 1
+  alt1LGarnerLegs := 4
+  alt2LGarnerLegs := 5
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
@@ -268,6 +277,7 @@ PUB UpdateChomper
     
   if chomp_x ==382 OR chomp_x ==178   'If the chomper hits a wall
     RotateChomper
+    'ChomperLaser
  
 PUB ChomperMotion
   repeat
@@ -324,6 +334,7 @@ PUB LittleGarnerMotion
       waitcnt(clkfreq/11+cnt)
 
 PUB UpdateLittleGarner
+  lGarnerMvmt := 1
   if lgarner_dir == 1
     Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
     Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
@@ -332,19 +343,32 @@ PUB UpdateLittleGarner
     Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
   
   if lgarner_x == 149
+    lGarnerMvmt := 0
     StaticDischarge
-    'RotateLittleGarner
+    RotateLittleGarner
 
   if lgarner_x == 230
-    'RotateLittleGarner    
+    RotateLittleGarner    
 
 PUB RotateLittleGarner
-  if lgarner_dir == 1
+  if lgarner_dir == 2
     Rotate(LGarnerHead, 0)
     Rotate(LGarnerLegs, 0)
-  else
+    lgarner_dir := 1
+  if lgarner_dir == 1
     Rotate(LGarnerHead, 2)
     Rotate(LGarnerLegs, 2)
+    lgarner_dir := 2
+
+PUB animate_lgarner
+  'repeat
+  '  if LGarnerLegs == alt1LGarnerLegs and lGarnerMvmt
+  '    LGarnerLegs := alt2LGarnerLegs
+  '    waitcnt(clkfreq/10+cnt)
+  '  mvmt := 0
+  ' if LGarnerLegs == alt2LGarnerLegs
+  '    LGarnerLegs := alt1LGarnerLegs
+  '    waitcnt(clkfreq/10+cnt)
 
 PUB StaticDischarge
     Move(static_discharge_1, 2, 12, lgarner_x - 16, lgarner_y)
@@ -522,7 +546,9 @@ PUB EasterEgg
     if x => 381 AND y == 64 AND C1buttons == %1111_1011
       EasterEggBackground
       Move(Propeller,2,8,x_p,y_p)
-      Move(laser,1,15,laser_x,laser_y)
+      'Move(laser,1,15,500,500) 'No lasers in the mechatronics forest!
+      bg_x :=250
+      bg_y :=450
       PlaceBigGarner
       gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))
          
@@ -583,8 +609,6 @@ PUB EasterEggBackground | i,j
   y_p := 450                   
 
 PUB PlaceBigGarner
-  bg_x :=250
-  bg_y :=450
   Move(BG1,3,0,bg_x,bg_y)
   Move(BG2,3,1,bg_x+16,bg_y)
   Move(BG3,3,2,bg_x+32,bg_y)      
