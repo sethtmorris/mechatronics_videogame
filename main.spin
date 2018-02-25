@@ -37,11 +37,6 @@ CON
   BG13 =22
   BG14 =23
   BG15 =24
-  LGarnerHead=0
-  LGarnerLegs=1
-  static_discharge_1=12
-  static_discharge_2=14
-  static_discharge_3=15  
                                           
 
 OBJ
@@ -55,8 +50,6 @@ VAR
   long x_p,y_p 'vars for propeller position
   byte count,nu,lives,laser_x,laser_y 'var for number of propellers obtained
   long chomp_x, chomp_y, ChompRot 'chomper position coodinates
-  byte lgarner_dir
-  long lgarner_x, lgarner_y
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
@@ -75,8 +68,8 @@ PUB Main
     Winning            'Win Conditions
   
 PUB Intro
-  'PlaceBigGarner
-  'waitcnt(clkfreq + cnt)
+
+
 
 PUB RunGame
   lives :=5
@@ -88,6 +81,7 @@ PUB RunGame
   'Propeller Initial Position
   x_p :=5
   y_p :=250
+
   
   Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat
   count:= 1 'Propeller is on level 1
@@ -99,11 +93,6 @@ PUB RunGame
   nu:=0 'Initialize Chomper
   UpdateChomper
   Move(laser,1,15,450,450)
-
-  lgarner_x := 200
-  lgarner_y := 25
-  lgarner_dir := 1
-  UpdateLittleGarner  
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
@@ -121,9 +110,6 @@ PUB RunGame
     coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
     coginit(3,ChomperMotion,@Stack3)    'Run robot chomper on cog 3
     coginit(4,ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
-    coginit(5, LittleGarnerMotion,@Stack5) 'Run little garner on cog 5.
-    coginit(6, StaticDischarge, @Stack6)
-    
   repeat until count > 7                             'Main loop
     UpdateAll
     gd.putstr(0,0,string("Health"))
@@ -153,15 +139,6 @@ PUB RunGame
 
     'Checks collisions between Laser and Player, repositions player at beginning, docs a life
     if CheckCollision(player_bottom,Laser) or CheckCollision(player_top,Laser)
-      x := 200
-      y := y_min 
-      Flash(5)
-      lives := lives-1
-      Move(0,0,player_top,x,y-16)
-      Move(1,0,player_bottom,x,y)
-
-    'Checks collisions with Static Discharge and Player, repositions player at beginning, docs a life
-    if CheckCollision(player_bottom,static_discharge_3) or CheckCollision(player_top,static_discharge_3)
       x := 200
       y := y_min 
       Flash(5)
@@ -208,7 +185,6 @@ PUB RunGame
     Move(laser,1,15,laser_x,laser_y)
 
     UpdateChomper
-    UpdateLittleGarner
     EasterEgg
 
 PUB CheckCollisionChomper(SpriteT, SpriteB)
@@ -239,6 +215,9 @@ PUB CheckLives | i
       firsttime := firsttime + 1
       lives:=5
      waitcnt(clkfreq/10 + cnt)
+
+  
+
   
 PUB Flash(numFlashes)
   repeat until numFlashes=<0
@@ -251,7 +230,7 @@ PUB Flash(numFlashes)
     numFlashes :=numFlashes-1
     
 PUB UpdateChomper
-  if nu == 0      'Initial position of the chomper sprite
+  if nu ==0      'Initial position of the chomper sprite
     Move(RobotHL,1,0,chomp_x,chomp_y-16)
     Move(RobotHR,1,1,chomp_x+16,chomp_y-16)
     Move(RobotLL,1,2,chomp_x,chomp_y)
@@ -275,27 +254,31 @@ PUB UpdateChomper
 PUB ChomperMotion
   repeat
     repeat until chomp_x=>382
-      nu:=2
       chomp_x:=chomp_x+2
       waitcnt(clkfreq/12+cnt)
+      nu:=2
     repeat until chomp_x=<176
-      nu:=1
       chomp_x:=chomp_x-2 
       waitcnt(clkfreq/12+cnt)
+      nu:=1
       
 PUB ChomperLaser
   repeat
-   ' laser_x:=chomp_x-16
-    'laser_y:=450
-    'if nu==1
-   ' repeat until laser_x=<0
-   '   laser_x:=laser_x-10
-   '   waitcnt(clkfreq/12+cnt)
-    {
+    'laser_x:=chomp_x-16
+    laser_y:=170
     if nu==2
+     repeat until laser_x=<0
+      'laser_x:=laser_x-10
+      laser_x:=200
+      waitcnt(clkfreq/12+cnt)
+    
+    if nu==1
+    laser_x:=chomp_x-16 
       repeat until laser_x=>385
-        laser_x:=laser_x+10
-        waitcnt(clkfreq/12+cnt)}
+        laser_x:=laser_x-10
+        'laser_x:=200
+        
+        waitcnt(clkfreq/12+cnt)
     waitcnt(clkfreq*10+cnt)
     
       
@@ -311,53 +294,9 @@ PUB RotateChomper 'if n is 1 then the chomper is going left, if n is 2 the chomp
       Rotate(RobotLL, 0)
       Rotate(RobotLR, 0)
        
-PUB LittleGarnerMotion
-  repeat
-    repeat until lgarner_x => 230
-      lgarner_dir := 1
-      lgarner_x := lgarner_x+3
-      waitcnt(clkfreq/11+cnt)
-    repeat until lgarner_x =< 149
-      lgarner_dir := 2  
-      lgarner_x := lgarner_x-3
-      waitcnt(clkfreq/11+cnt)
+PUB LittleGarnerMovement
 
-PUB UpdateLittleGarner
-  if lgarner_dir == 1
-    Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
-    Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
-  else 'lgarner_dir == 2
-    Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
-    Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
-  
-  if lgarner_x == 149
-    StaticDischarge
-    RotateLittleGarner
 
-  if lgarner_x == 230
-    RotateLittleGarner    
-
-PUB RotateLittleGarner
-  if lgarner_dir == 1
-    Rotate(LGarnerHead, 2)
-    Rotate(LGarnerLegs, 2)
-  else
-    Rotate(LGarnerHead, 0)
-    Rotate(LGarnerLegs, 0)
-
-PUB StaticDischarge
-    Move(static_discharge_1, 2, 12, lgarner_x - 16, lgarner_y)
-    Rotate(12,2)
-    Move(static_discharge_2, 2, 14, lgarner_x - 32, lgarner_y)
-    Rotate(14,2)
-    Move(static_discharge_3, 2, 15, lgarner_x - 48, lgarner_y)
-    Rotate(15,2)
-    waitcnt(clkfreq/3+cnt)
-    Move(static_discharge_1, 2, 12, 184, 36)
-    Move(static_discharge_2, 2, 14, 200, 36)
-    Move(static_discharge_3, 2, 15, 216, 36)
-    
-    
 PUB gravity(xcord, ycord)
 'Implements gravity for a sprite at position xcord, ycord
 
