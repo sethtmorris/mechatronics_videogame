@@ -37,11 +37,12 @@ CON
   BG13 =22
   BG14 =23
   BG15 =24
-  LGarnerHead=0
-  LGarnerLegs=1
-  static_discharge_1=12
-  static_discharge_2=14
-  static_discharge_3=15 
+  LGarnerHead =25
+  LGarnerLegs =26
+  static_discharge_1 =27
+  static_discharge_2 =28
+  static_discharge_3=29
+   
                                           
 
 OBJ
@@ -59,6 +60,8 @@ VAR
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
   byte bg_x, bg_y
+  long lgarner_x,lgarner_y
+  byte lgarner_dir
                    
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
@@ -101,8 +104,7 @@ PUB RunGame
 
   lgarner_x := 200
   lgarner_y := 25
-  lgarner_dir := 1
-  UpdateLittleGarner 
+  lgarner_dir := 1   
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
