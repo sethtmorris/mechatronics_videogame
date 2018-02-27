@@ -61,7 +61,7 @@ VAR
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime, static 'flag variables for player jumping, player movement, and first run through game, respectively
-  byte bg_x, bg_y
+  byte bg_x, bg_y, easter
   long sdx1, sdx2, sdx3, sdy1, sdy2, sdy3 'static discharge position variables          
                    
 PUB Main 
@@ -88,6 +88,7 @@ PUB Intro
 
 PUB RunGame
 
+  easter := false
   lives :=5 'initialize lives
 
   'Player Initial Position
@@ -138,7 +139,7 @@ PUB RunGame
   repeat until (count > 7 or lives =< 0)                            'Main loop
     UpdateAll
     gd.putstr(0,0,string("Health"))
-    gd.putstr(7,0,string("     "))  'actual health bar (For some reason doesn't show up unless this is here)
+    gd.putstr(7,0,string("     "))  'Actual health bar (For some reason doesn't show up unless this is here)
     CheckLives   
     
     'Checks collisions between propeller hat and player, repositions propeller up one level       
@@ -189,16 +190,16 @@ PUB RunGame
         player_rot:=0
         mvmt := true 
       %1111_0111 :    'Up Button
-        if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) 
+        if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
           jump := true
       %1111_0101 :    'Up and to the Left
-        if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) 
+        if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
           jump := true
         player_rot:=2    
         x := x-1
         mvmt := true     
       %1111_0110 :       'Up and to the Right
-        if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) 
+        if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
           jump := true
         x := x+1
         player_rot:=0
@@ -220,7 +221,9 @@ PUB RunGame
     UpdateChomper
     UpdateLittleGarner
     update_static
-    EasterEgg
+    EasterEgg                         'Checks if the player is in the correct position for the mechatronics forest
+    if (C1buttons == %0111_1111)      'This is a glitch that allows you to redraw the background in the mechatronics forest
+      Background     
 
 PUB CheckCollisionChomper(SpriteT, SpriteB)
   if CheckCollision(SpriteB,RobotHL) or CheckCollision(SpriteB,RobotLR) or CheckCollision(SpriteB,RobotLL) or CheckCollision(SpriteB,RobotHR)
@@ -545,16 +548,15 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
                                                                                                      
 
 PUB EasterEgg
-
-  if x => 381 AND y == 64 AND C1buttons == %1111_1011
+ if x => 381 AND y == 64 AND C1buttons == %1111_1011
     EasterEggBackground
     Move(Propeller,2,8,x_p,y_p)
     'Move(laser,1,15,500,500) 'No lasers in the mechatronics forest!
     bg_x :=250
     bg_y :=450
     PlaceBigGarner
-    gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))
-         
+    gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))     
+           
   
 PUB EasterEggBackground | i,j
 'Draw the ground
