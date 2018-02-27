@@ -42,13 +42,6 @@ CON
   static_discharge_1 =27
   static_discharge_2 =28
   static_discharge_3=29
-                  
-  LGarnerHead=25
-  LGarnerLegs=26
-  static_discharge_1=27
-  static_discharge_2=28
-  static_discharge_3=29                                  
-                                          
 
 OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
@@ -67,9 +60,7 @@ VAR
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
-  byte bg_x, bg_y
-  long lgarner_x,lgarner_y
-  byte lgarner_dir
+  byte bg_x, bg_y          
                    
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
@@ -353,7 +344,7 @@ PUB UpdateLittleGarner
   
   if lgarner_x == 149
     lGarnerMvmt := 0
-    StaticDischarge
+    'StaticDischarge
     RotateLittleGarner
 
   if lgarner_x == 230
