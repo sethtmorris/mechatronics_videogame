@@ -1,7 +1,7 @@
 'Names
 
-'TO DO 02/22 : (1) chomper movement + animation + collisions; (2) everything with little garner; (3) everything with a possible projectile; (4) everything with a 4th NPC (another chomper?);
-  '(5) death + lives + scorekeeping;(6) debug winning / game restart conditions; (7) animate / spice up intro / end screens (optional?)
+'TO DO 02/22 : (1) chomper movement + animation + collisions; (2) fixing little garner rotation.(4) everything with a 4th NPC (another chomper?);
+  '(6) debug winning / game restart conditions; (7) animate / spice up intro / end screens (optional?)
 
 CON
   _xinfreq=6_250_000
@@ -15,19 +15,19 @@ CON
 
 'Sprite Number Shorthands                             
   Propeller=6
-  RobotHL=2
+  RobotHL = 2
   RobotHR = 3
-  RobotLL=4
-  RobotLR=5
+  RobotLL = 4
+  RobotLR = 5
   Laser=8
   player_top = 0
   player_bottom = 1
-  BG1 = 9
-  BG2 =10
-  BG3 =11
+  BG1  = 9
+  BG2  =10
+  BG3  =11
   BG4  =12
   BG5  =13
-  BG6   =14
+  BG6  =14
   BG7  =15
   BG8  =16
   BG9  =17
@@ -37,12 +37,20 @@ CON
   BG13 =22
   BG14 =23
   BG15 =24
+<<<<<<< HEAD
   LGarnerHead =25
   LGarnerLegs =26
   static_discharge_1 =27
   static_discharge_2 =28
   static_discharge_3=29
    
+=======
+  LGarnerHead=25
+  LGarnerLegs=26
+  static_discharge_1=27
+  static_discharge_2=28
+  static_discharge_3=29 
+>>>>>>> 03f88919584455d90e8956065d1f40fa93a29498
                                           
 
 OBJ
@@ -56,6 +64,9 @@ VAR
   long x_p,y_p 'vars for propeller position
   byte count,nu,lives,laser_x,laser_y 'var for number of propellers obtained
   long chomp_x, chomp_y, ChompRot 'chomper position coodinates
+  long lgarner_x, lgarner_y
+  byte lgarner_dir
+  byte alt1LGarnerLegs, alt2LGarnerLegs, lGarnerMvmt
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime 'flag variables for player jumping, player movement, and first run through game, respectively
@@ -76,8 +87,14 @@ PUB Main
     Winning            'Win Conditions
   
 PUB Intro
-
-
+  'bg_x :=200
+  'bg_y :=200
+  'PlaceBigGarner
+  'gd.putstr(15,10,string("Story")) 
+  'waitcnt(clkfreq*5 + cnt)
+  'bg_x :=300
+  'bg_y :=300
+  'PlaceBigGarner 'Move out of the way.
 
 PUB RunGame
   lives :=5
@@ -90,8 +107,7 @@ PUB RunGame
   x_p :=5
   y_p :=250
 
-  
-  Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat
+  Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat 
   count:= 1 'Propeller is on level 1
   
   chomp_x :=200
@@ -99,12 +115,16 @@ PUB RunGame
   laser_x :=385
   laser_y :=chomp_y-16
   nu:=0 'Initialize Chomper
-  UpdateChomper
-  Move(laser,1,15,450,450)
 
   lgarner_x := 200
   lgarner_y := 25
+<<<<<<< HEAD
   lgarner_dir := 1   
+=======
+  lgarner_dir := 1
+  alt1LGarnerLegs := 4
+  alt2LGarnerLegs := 5
+>>>>>>> 03f88919584455d90e8956065d1f40fa93a29498
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
@@ -118,12 +138,12 @@ PUB RunGame
   jump := false
 
   if firsttime == 0
-    coginit(1,animate_player,@Stack1)   'Run player animation on cog 1
-    coginit(2,player_jump,@Stack2)      'Run player jumping on cog 2
-    coginit(3,ChomperMotion,@Stack3)    'Run robot chomper on cog 3
-    coginit(4,ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
+    coginit(1, animate_player,@Stack1)   'Run player animation on cog 1
+    coginit(2, player_jump,@Stack2)      'Run player jumping on cog 2
+    coginit(3, ChomperMotion,@Stack3)    'Run robot chomper on cog 3
+    coginit(4, ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
     coginit(5, LittleGarnerMotion,@Stack5) 'Run little garner on cog 5.
-    coginit(6, StaticDischarge, @Stack6)
+    coginit(6, StaticDischarge,@Stack6)
 
   repeat until count > 7                             'Main loop
     UpdateAll
@@ -154,6 +174,15 @@ PUB RunGame
 
     'Checks collisions between Laser and Player, repositions player at beginning, docs a life
     if CheckCollision(player_bottom,Laser) or CheckCollision(player_top,Laser)
+      x := 200
+      y := y_min 
+      Flash(5)
+      lives := lives-1
+      Move(0,0,player_top,x,y-16)
+      Move(1,0,player_bottom,x,y)
+
+    'Checks collisions between Static Discharge and Player, repositions player at beginning, docs a life
+    if CheckCollision(player_bottom,static_discharge_3) or CheckCollision(player_top,static_discharge_3)
       x := 200
       y := y_min 
       Flash(5)
@@ -230,10 +259,7 @@ PUB CheckLives | i
         gd.putstr(22,1,string("Press A to Play Again."))
       firsttime := firsttime + 1
       lives:=5
-     waitcnt(clkfreq/10 + cnt)
-
-  
-
+     waitcnt(clkfreq/10 + cnt) 
   
 PUB Flash(numFlashes)
   repeat until numFlashes=<0
@@ -266,6 +292,7 @@ PUB UpdateChomper
     
   if chomp_x ==382 OR chomp_x ==178   'If the chomper hits a wall
     RotateChomper
+    'ChomperLaser
  
 PUB ChomperMotion
   repeat
@@ -280,7 +307,7 @@ PUB ChomperMotion
       
 PUB ChomperLaser
   repeat
-    'laser_x:=chomp_x-16
+    laser_x:=chomp_x-16
     laser_y:=170
     if nu==2
      repeat until laser_x=<0
@@ -322,6 +349,7 @@ PUB LittleGarnerMotion
       waitcnt(clkfreq/11+cnt)
 
 PUB UpdateLittleGarner
+  lGarnerMvmt := 1
   if lgarner_dir == 1
     Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
     Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
@@ -330,6 +358,7 @@ PUB UpdateLittleGarner
     Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
   
   if lgarner_x == 149
+    lGarnerMvmt := 0
     StaticDischarge
     RotateLittleGarner
 
@@ -337,20 +366,32 @@ PUB UpdateLittleGarner
     RotateLittleGarner    
 
 PUB RotateLittleGarner
+  if lgarner_dir == 2
+    Rotate(LGarnerHead, 0)
+    Rotate(LGarnerLegs, 0)
+    lgarner_dir := 1
   if lgarner_dir == 1
     Rotate(LGarnerHead, 2)
     Rotate(LGarnerLegs, 2)
-  else
-    Rotate(LGarnerHead, 0)
-    Rotate(LGarnerLegs, 0)
+    lgarner_dir := 2
+
+PUB animate_lgarner
+  'repeat
+  '  if LGarnerLegs == alt1LGarnerLegs and lGarnerMvmt
+  '    LGarnerLegs := alt2LGarnerLegs
+  '    waitcnt(clkfreq/10+cnt)
+  '  mvmt := 0
+  ' if LGarnerLegs == alt2LGarnerLegs
+  '    LGarnerLegs := alt1LGarnerLegs
+  '    waitcnt(clkfreq/10+cnt)
 
 PUB StaticDischarge
     Move(static_discharge_1, 2, 12, lgarner_x - 16, lgarner_y)
-    Rotate(12,2)
+    Rotate(static_discharge_1,2)
     Move(static_discharge_2, 2, 14, lgarner_x - 32, lgarner_y)
-    Rotate(14,2)
+    Rotate(static_discharge_2,2)
     Move(static_discharge_3, 2, 15, lgarner_x - 48, lgarner_y)
-    Rotate(15,2)
+    Rotate(static_discharge_3,2)
     waitcnt(clkfreq/3+cnt)
     Move(static_discharge_1, 2, 12, 184, 36)
     Move(static_discharge_2, 2, 14, 200, 36)
@@ -520,7 +561,9 @@ PUB EasterEgg
     if x => 381 AND y == 64 AND C1buttons == %1111_1011
       EasterEggBackground
       Move(Propeller,2,8,x_p,y_p)
-      Move(laser,1,15,laser_x,laser_y)
+      'Move(laser,1,15,500,500) 'No lasers in the mechatronics forest!
+      bg_x :=250
+      bg_y :=450
       PlaceBigGarner
       gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))
          
@@ -581,15 +624,13 @@ PUB EasterEggBackground | i,j
   y_p := 450                   
 
 PUB PlaceBigGarner
-  bg_x :=0
-  bg_y :=0
   Move(BG1,3,0,bg_x,bg_y)
   Move(BG2,3,1,bg_x+16,bg_y)
-  Move(BG3,3,2,bg_x+32,bg_y)
-  Move(BG4,3,3,bg_x,bg_y+16)
+  Move(BG3,3,2,bg_x+32,bg_y)      
+  Move(BG4,3,3,bg_x,bg_y+16)      'rotated
   Move(BG5,3,4,bg_x+16,bg_y+16)
-  Move(BG6,3,5,bg_x+32,bg_y+16)
-  Move(BG7,3,6,bg_x,bg_y+32)
+  Move(BG6,3,5,bg_x+32,bg_y+16)   'rotated
+  Move(BG7,3,6,bg_x,bg_y+32)      'rotated
   Move(BG8,3,7,bg_x+16,bg_y+32)
   Move(BG9,3,8,bg_x+32,bg_y+32)
   Move(BG10,3,9,bg_x,bg_y+48)
