@@ -36,21 +36,18 @@ CON
   BG12 =20
   BG13 =22
   BG14 =23
-  BG15 =24
-<<<<<<< HEAD
+  BG15 =24         
   LGarnerHead =25
   LGarnerLegs =26
   static_discharge_1 =27
   static_discharge_2 =28
   static_discharge_3=29
-   
-=======
+                  
   LGarnerHead=25
   LGarnerLegs=26
   static_discharge_1=27
   static_discharge_2=28
-  static_discharge_3=29 
->>>>>>> 03f88919584455d90e8956065d1f40fa93a29498
+  static_discharge_3=29                                  
                                           
 
 OBJ
@@ -117,14 +114,11 @@ PUB RunGame
   nu:=0 'Initialize Chomper
 
   lgarner_x := 200
-  lgarner_y := 25
-<<<<<<< HEAD
-  lgarner_dir := 1   
-=======
+  lgarner_y := 25     
+  lgarner_dir := 1    
   lgarner_dir := 1
   alt1LGarnerLegs := 4
-  alt2LGarnerLegs := 5
->>>>>>> 03f88919584455d90e8956065d1f40fa93a29498
+  alt2LGarnerLegs := 5                             
   
   'Player "falls" downscreen at beginning of game
   repeat until y == y_min
