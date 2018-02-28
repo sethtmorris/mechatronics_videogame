@@ -14,14 +14,14 @@ CON
   data2=7                         
 
 'Sprite Number Shorthands                             
-  Propeller=6
-  RobotHL = 2
+  Propeller=6               'Propeller hat
+  RobotHL = 2               'Different sprites for Chomper H - head, L-legs
   RobotHR = 3
   RobotLL = 4
   RobotLR = 5
-  Laser=8
-  player_top = 0
-  player_bottom = 1
+  Laser=8                   'Chomper's Laser
+  player_top = 0            'Chosen player's top sprite
+  player_bottom = 1         'Chosen player's bottom sprite
   BG1  = 9                  'Set of big Garner sprites  
   BG2  =10
   BG3  =11
@@ -36,10 +36,10 @@ CON
   BG12 =20
   BG13 =22
   BG14 =23
-  BG15 =24         
-  LGarnerHead =25
-  LGarnerLegs =26
-  static_discharge_1 =27
+  BG15 =24                 
+  LGarnerHead =25          'Little Garner head and leg sprites
+  LGarnerLegs =26          
+  static_discharge_1 =27   'Garner's static discharge sprites
   static_discharge_2 =28
   static_discharge_3=29
 
@@ -47,20 +47,20 @@ OBJ
   gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
 
 VAR
-  byte collisions[256], OldChar[12]                                'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
+  byte collisions[256], OldChar[12]  'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, player_rot 'vars for player position and rotation
   long x_p,y_p 'vars for propeller position
-  byte count,nu,lives
-  long laser_x,laser_y
-  long chomp_x, chomp_y, ChompRot 'chomper position coodinates
-  long lgarner_x, lgarner_y
-  byte lgarner_dir
-  byte alt1LGarnerLegs, alt2LGarnerLegs, lGarnerMvmt
+  byte count,lives  'count is how many propellers have been collected, lives is number of lives left
+  long laser_x,laser_y  'coordinates of the chomper's laser
+  long chomp_x, chomp_y, ChompRot,nu 'chomper position coodinates, rotation, and whether it is going left or right (nu =1 if going left and 2 if right)
+  long lgarner_x, lgarner_y   'Little Garner's x and y position
+  byte lgarner_dir  'Direction little garner is going
+  byte alt1LGarnerLegs, alt2LGarnerLegs, lGarnerMvmt  'used for Little Garner's motion
   byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
   long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
   byte jump, mvmt, firsttime, static 'flag variables for player jumping, player movement, and first run through game, respectively
-  byte bg_x, bg_y, easter
+  byte bg_x, bg_y, easter 'Coordinates of Big Garner
   long sdx1, sdx2, sdx3, sdy1, sdy2, sdy3 'static discharge position variables          
                    
 PUB Main 
