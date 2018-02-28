@@ -22,7 +22,7 @@ CON
   Laser=8
   player_top = 0
   player_bottom = 1
-  BG1  = 9
+  BG1  = 9                  'Set of big Garner sprites  
   BG2  =10
   BG3  =11
   BG4  =12
@@ -50,7 +50,6 @@ VAR
   byte collisions[256], OldChar[12]                                'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
   byte C1buttons, C2buttons 'NES controller button states
   long x, y, y_min, player_rot 'vars for player position and rotation
-  long spacing  'does something with the background? only called in one method ... better as a local var?
   long x_p,y_p 'vars for propeller position
   byte count,nu,lives
   long laser_x,laser_y
@@ -88,7 +87,6 @@ PUB Intro
 
 PUB RunGame
 
-  easter := false
   lives :=5 'initialize lives
 
   'Player Initial Position
@@ -127,7 +125,8 @@ PUB RunGame
   mvmt := false
   jump := false
   static := false
-
+  easter := false                 'isn't running easter egg background
+  
   if firsttime == 0
     coginit(1, animate_player,@Stack1)   'Run player animation on cog 1
     coginit(2, player_jump,@Stack2)      'Run player jumping on cog 2
@@ -483,7 +482,7 @@ PUB SelectCharacter | i, j, k
 
 
 '------------------------------------------ DRAW BACKGROUND --------------------------------------------
-PUB Background | i,j,k                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
+PUB Background | i,j,k,spacing                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
   'This repeat loop just sets the background to black, might not be necessary in the final run but is convenient for testing
   repeat j from 0 to 37
     repeat i from 0 to 49
@@ -495,7 +494,8 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
     repeat i from 0 to 49
         Draw(0,26,i,j)
         Draw(0,26,i,j+1)
-  spacing:=5
+        
+  spacing:=5                 'The spacing between the levels
   'Level one bricks
   j :=30 
   repeat i from 5 to 20
@@ -548,11 +548,11 @@ PUB Background | i,j,k                                    'Note that i,j,k are d
                                                                                                      
 
 PUB EasterEgg
- if x => 381 AND y == 64 AND C1buttons == %1111_1011
-    EasterEggBackground
-    Move(Propeller,2,8,x_p,y_p)
-    'Move(laser,1,15,500,500) 'No lasers in the mechatronics forest!
-    bg_x :=250
+ if x => 381 AND y == 64 AND C1buttons == %1111_1011      'If the player is standing in a certain spot and hits the down button
+    EasterEggBackground             'change the background to the mechatronics forest
+    Move(Propeller,2,8,x_p,y_p)     'Moves the propeller off the screen
+    'Move(laser,1,15,500,500)       'No lasers in the mechatronics forest!
+    bg_x :=250                      'sets coordinates and places big Garner on the screen
     bg_y :=450
     PlaceBigGarner
     gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))     
@@ -570,6 +570,7 @@ PUB EasterEggBackground | i,j
     repeat i from 0 to 49
         Draw(0,4,i,j)
 
+  'Draw the sun
   repeat j from 2 to 5
     repeat i from 43 to 46
       Draw(0,5,i,j)
@@ -602,10 +603,12 @@ PUB EasterEggBackground | i,j
   Draw(0,5,41,3)
   Draw(0,5,40,3)
 
+  'Draws three trees
   DrawTree(10,34)
   DrawTree(22,34)
   DrawTree(40,34)
-  
+
+  'Moves the propeller, laser and chomper off of the screen
   chomp_x := 450
   chomp_y := 450
   laser_x :=450 
@@ -613,14 +616,14 @@ PUB EasterEggBackground | i,j
   x_p := 450
   y_p := 450                   
 
-PUB PlaceBigGarner
+PUB PlaceBigGarner 'Allows big Garner to easily change position
   Move(BG1,3,0,bg_x,bg_y)
   Move(BG2,3,1,bg_x+16,bg_y)
   Move(BG3,3,2,bg_x+32,bg_y)      
-  Move(BG4,3,3,bg_x,bg_y+16)      'rotated
+  Move(BG4,3,3,bg_x,bg_y+16)      
   Move(BG5,3,4,bg_x+16,bg_y+16)
-  Move(BG6,3,5,bg_x+32,bg_y+16)   'rotated
-  Move(BG7,3,6,bg_x,bg_y+32)      'rotated
+  Move(BG6,3,5,bg_x+32,bg_y+16)   
+  Move(BG7,3,6,bg_x,bg_y+32)      
   Move(BG8,3,7,bg_x+16,bg_y+32)
   Move(BG9,3,8,bg_x+32,bg_y+32)
   Move(BG10,3,9,bg_x,bg_y+48)
@@ -659,13 +662,13 @@ PUB DrawTree(xcoord, ycoord) | i,j
   Draw(0,12,xcoord+3,ycoord-16)    'Right diagonal branch
   Draw(0,12,xcoord+4,ycoord-17) 
   
-  Draw(0,12,xcoord-1,ycoord-3)    'Left diagonal branch
+  Draw(0,12,xcoord-1,ycoord-3)     'Left diagonal branch
   Draw(0,12,xcoord-2,ycoord-4)
   Draw(0,12,xcoord-3,ycoord-5)
   Draw(0,12,xcoord-4,ycoord-6)
   Draw(0,12,xcoord-4,ycoord-7)
 
-  Draw(0,12,xcoord-1,ycoord-8)    'Left diagonal branch
+  Draw(0,12,xcoord-1,ycoord-8)     'Left diagonal branch
   Draw(0,12,xcoord-2,ycoord-9)
   Draw(0,12,xcoord-3,ycoord-10)
   Draw(0,12,xcoord-4,ycoord-11)
@@ -682,7 +685,7 @@ PUB DrawTree(xcoord, ycoord) | i,j
   Draw(0,12,xcoord+1,ycoord-19)
   Draw(0,12,xcoord+1,ycoord-20)
 
-  Draw(0,12,xcoord,ycoord-17)
+  Draw(0,12,xcoord,ycoord-17)      'Top Branch
   Draw(0,12,xcoord-1,ycoord-18)
   Draw(0,12,xcoord+2,ycoord-17)
   Draw(0,12,xcoord+3,ycoord-18)
