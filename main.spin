@@ -107,7 +107,7 @@ PUB RunGame
   deathy := y_min
 
   Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat 
-  count:= 7 'Propeller is on level 1
+  count:= 1 'Propeller is on level 1
   
   chomp_x :=200
   chomp_y :=185
@@ -263,18 +263,17 @@ PUB MechatronicsForest
      laser_x :=off 
      laser_y :=off
      x_p := 50
-     y_p := 200
-     lgarner_x := 150
+     y_p := 200     
      lgarner_y := y_min - 8
+     lgarner_x := 150
      lgarner_rbound := 399
-     lgarner_lbound := 1
-     deathy := 75 
+     lgarner_lbound := 3
+     deathy := 75         
      cogstop(3)
      cogstop(4)     
      cogstop(6)
      coginit(3,MoveMouth,@Stack3)
-     coginit(4,toggle_text,@Stack4)
-     coginit(6, StaticDischarge,@Stack6)
+     coginit(4,toggle_text,@Stack4)   
 
      MechatronicsForestBackground             'change the background to the mechatronics forest
      Move(Propeller,2,8,x_p,y_p)     'Moves the propeller off the screen
@@ -341,13 +340,11 @@ PUB toggle_text
 PUB UpdateLittleGarner
 'Updates Little Garner Character
 
-  lGarnerMvmt := 1
   Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
   Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
   
   if lgarner_x == lgarner_lbound or lgarner_x == lgarner_rbound
     if lgarner_x == lgarner_lbound
-      lGarnerMvmt := 0
       static := true
     if lgarner_dir == 2
       Rotate(LGarnerHead, 0)
@@ -585,7 +582,7 @@ PUB ChomperLaser
         laser_x := laser_x + 10       
         waitcnt(clkfreq/20+cnt)
     laser_x := off
-    waitcnt(clkfreq/2+cnt)
+    waitcnt(clkfreq/3+cnt)
        
 PUB LittleGarnerMotion
 'Controls Little Garner Motion, designed to be run on seperate cog
