@@ -14,15 +14,15 @@ CON
   data2=7                         
 
 'Sprite Number Shorthands                             
-  Propeller=6               'Propeller hat
-  RobotHL = 2               'Different sprites for Chomper H - head, L-legs
+  Propeller=6                                                                   'Propeller hat
+  RobotHL = 2                                                                   'Different sprites for Chomper H - head, L-legs
   RobotHR = 3
   RobotLL = 4
   RobotLR = 5
-  Laser=8                   'Chomper's Laser
-  player_top = 0            'Chosen player's top sprite
-  player_bottom = 1         'Chosen player's bottom sprite
-  BG1  = 9                  'Set of big Garner sprites  
+  Laser=8                                                                       'Chomper's Laser
+  player_top = 0                                                                'Chosen player's top sprite
+  player_bottom = 1                                                             'Chosen player's bottom sprite
+  BG1  = 9                                                                      'Set of big Garner sprites  
   BG2  =10
   BG3  =11
   BG4  =12
@@ -37,38 +37,38 @@ CON
   BG13 =22
   BG14 =23
   BG15 =24
-  BGMouthAlt = 30          'Alternate mouth for speaking                
-  LGarnerHead =25          'Little Garner head and leg sprites
+  BGMouthAlt = 30                                                               'Alternate mouth for speaking                
+  LGarnerHead =25                                                               'Little Garner head and leg sprites
   LGarnerLegs =26          
-  static_discharge_1 =27   'Garner's static discharge sprites
+  static_discharge_1 =27                                                        'Garner's static discharge sprites
   static_discharge_2 =28
   static_discharge_3=29
-  off = 450 'coordinate that is off the screen
+  off = 450                                                                     'Coordinate that is off the visible screen
 
 OBJ
-  gd : "GD_ASM_v4"                                  'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
+  gd : "GD_ASM_v4"                                                              'Include the external "GD_ASM_v4" object so that your code can call its methods using gd.<method name>
 
 VAR
-  byte collisions[256], OldChar[12]  'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
-  byte C1buttons, C2buttons 'NES controller button states
-  long x, y, y_min, player_rot 'vars for player position and rotation
-  long x_p,y_p 'vars for propeller position
-  byte count,lives  'count is how many propellers have been collected, lives is number of lives left
-  long laser_x,laser_y  'coordinates of the chomper's laser
-  long chomp_x, chomp_y, ChompRot,nu 'chomper position coodinates, rotation, and whether it is going left or right (nu =1 if going left and 2 if right)
-  long lgarner_x, lgarner_y   'Little Garner's x and y position
-  byte lgarner_dir  'Direction little garner is going
-  byte alt1LGarnerLegs, alt2LGarnerLegs, lGarnerMvmt  'used for Little Garner's motion
-  byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet 'Sprite image shorthands for player : diff. from Demo prgm
-  long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]   'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
-  byte jump, mvmt, static 'flag variables for player jumping, player movement, and first run through game, respectively
-  long bg_x, bg_y,mouth                                      'Coordinates of Big Garner and current mouth sprite
-  long sdx1, sdx2, sdx3, sdy1, sdy2, sdy3               'static discharge position variables          
-  byte easter   'if the character activates the easter egg (initially false)
-  byte bgline   'flag for garner talking
-  byte rhr, rll, rlr
-  long lgarner_rbound, lgarner_lbound
-  long deathy    
+  byte collisions[256], OldChar[12]                                             'Reserve 256 bytes to store sprite collision data and 12 bytes to temporarily store background characters when displaying up to 12-digit numbers over top of them (so that they can be redrawn if the number gets smaller and takes up fewer decimal places)                        
+  byte C1buttons, C2buttons                                                     'NES controller button states
+  long x, y, y_min, player_rot                                                  'vars for player character position and rotation
+  long x_p,y_p                                                                  'vars for propeller position
+  byte count,lives                                                              'count is the level the propeller is on, lives is number of lives left
+  long laser_x,laser_y                                                          'coordinates of the chomper's laser
+  long chomp_x, chomp_y, ChompRot,nu                                            'chomper position coodinates, rotation, and whether it is going left or right (nu =1 if going left and 2 if right)
+  long lgarner_x, lgarner_y                                                     'Little Garner's x and y position
+  byte lgarner_dir                                                              'Direction little garner is going (1 for right and 2 for left)
+  byte alt1LGarnerLegs, alt2LGarnerLegs, lGarnerMvmt                            'Alternate sprite legs for Little Garner's motion
+  byte TPlayer, BPlayer, Alt1Player, Alt2Player, feet                           'Sprite image shorthands for player : diff. from Demo prgm
+  long Stack1[100],Stack2[100],Stack3[100],Stack4[100],Stack5[100],Stack6[100]  'Reserve 100 longs for extra cogs to use as scratchpad RAM (100 longs is usually a good amount). You should always reserve 100 longs of stack space for every new cog that you start.         
+  byte jump, mvmt, static                                                       'Flag variables for player jumping, player movement, and whether the static discharge is off screen respectively
+  long bg_x, bg_y,mouth                                                         'Coordinates of Big Garner and current mouth sprite
+  long sdx1, sdx2, sdx3, sdy1, sdy2, sdy3                                       'Static discharge position variables          
+  byte easter                                                                   'If the character activates the easter egg (initially false)
+  byte bgline                                                                   'Flag for garner talking
+  byte rhr, rll, rlr                                                            'Chomper's alternate legs for motion
+  long lgarner_rbound, lgarner_lbound                                           'Little Garner's left and right bounds for motion
+  long deathy                                                                   'Y coordinate of where the player respawns when losing a life
                   
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
