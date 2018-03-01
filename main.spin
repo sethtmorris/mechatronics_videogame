@@ -65,7 +65,10 @@ VAR
   long bg_x, bg_y,mouth                                      'Coordinates of Big Garner and current mouth sprite
   long sdx1, sdx2, sdx3, sdy1, sdy2, sdy3               'static discharge position variables          
   byte easter   'if the character activates the easter egg (initially false)
-  byte bgline   'flag for garner talking      
+  byte bgline   'flag for garner talking
+  byte rhr, rll, rlr
+  long lgarner_rbound, lgarner_lbound
+  long deathy    
                   
 PUB Main 
   gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
@@ -90,7 +93,7 @@ PUB Intro
 
 PUB RunGame
 
-  lives :=5 'initialize lives
+  lives := 6 'initialize lives
 
   'Player Initial Position
   x := 200
@@ -101,8 +104,10 @@ PUB RunGame
   x_p :=5
   y_p :=250
 
+  deathy := y_min
+
   Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat 
-  count:= 1 'Propeller is on level 1
+  count:= 7 'Propeller is on level 1
   
   chomp_x :=200
   chomp_y :=185
@@ -112,8 +117,9 @@ PUB RunGame
 
   'initialize little Garner
   lgarner_x := 200
-  lgarner_y := 25     
-  lgarner_dir := 1    
+  lgarner_y := 25
+  lgarner_rbound := 230
+  lgarner_lbound := 149     
   lgarner_dir := 1
   alt1LGarnerLegs := 4
   alt2LGarnerLegs := 5                             
@@ -132,9 +138,12 @@ PUB RunGame
   easter := false
   bgline := -1
  
-
+  rhr := 1
+  rll := 2
+  rlr := 3
+  
   coginit(1, animate_player,@Stack1)   'Run player animation on cog 1
-  coginit(2, player_jump,@Stack2)      'Run player jumping on cog 2
+  coginit(2, animate_chomper,@Stack2)      'Run player jumping on cog 2
   coginit(3, ChomperMotion,@Stack3)    'Run robot chomper on cog 3
   coginit(4, ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
   coginit(5, LittleGarnerMotion,@Stack5) 'Run little garner on cog 5.
@@ -143,32 +152,46 @@ PUB RunGame
   repeat until (count => 15 or lives =< 0)                            'Main loop
     UpdateAll
     gd.putstr(0,0,string("Health"))
-    gd.putstr(7,0,string("     "))  'Actual health bar (For some reason doesn't show up unless this is here)
+    gd.putstr(7,0,string("      "))  'Actual health bar (For some reason doesn't show up unless this is here)
     CheckLives   
     
     'Checks collisions between propeller hat and player, repositions propeller up one level       
     if CheckCollision(player_bottom,Propeller) or CheckCollision(player_top,Propeller)
-      y_p :=y_p-40
       count:=count+1
-      if(count ==2)
-        x_p := 215
-      if(count ==3)
-        x_p := 350
-      if(count ==4)
-        x_p := 175
-      if(count ==5)
-        x_p := 10
-      if(count ==6)
-        x_p := 260
-      if(count ==7)
-        x_p := 5
-
-
-    case count
-      8:
-        x_p := 6
-      9:
-        x_p := 35
+      case count
+        2:
+          x_p := 215
+          y_p :=y_p-40
+        3:
+          x_p := 350
+          y_p :=y_p-40
+        4:
+          x_p := 175
+          y_p :=y_p-40
+        5:
+          x_p := 10
+          y_p :=y_p-40
+        6:
+          x_p := 260
+          y_p :=y_p-40
+        7:
+          x_p := 5
+          y_p :=y_p-40
+        10:
+          x_p := 10
+          y_p := 125
+        11:
+          x_p := 275
+          y_p := 175
+        12:
+          x_p := 100
+          y_p := 200
+        13:
+          x_p := 250
+          y_p := 150
+        14:
+          x_p := 170
+          y_p := 175
 
    'Checks collisions between Chomper and Player, repositions player at beginning, docs a life    
     CheckCollisionChomper(player_top,player_bottom)
@@ -233,46 +256,62 @@ PUB RunGame
     GarnerText
 
 PUB MechatronicsForest
-  if count ==6       
+  if count == 8       
      'Moves the propeller, laser and chomper off of the screen
      chomp_x := off
      chomp_y := off
      laser_x :=off 
      laser_y :=off
      x_p := 50
-     y_p := 0
-     lgarner_x := off
-     lgarner_y := off 
+     y_p := 200
+     lgarner_x := 150
+     lgarner_y := y_min - 8
+     lgarner_rbound := 399
+     lgarner_lbound := 1
+     deathy := 75 
      cogstop(3)
-     cogstop(4)
-     cogstop(5)
+     cogstop(4)     
      cogstop(6)
      coginit(3,MoveMouth,@Stack3)
      coginit(4,toggle_text,@Stack4)
-     coginit(5,propeller_fall,@Stack5)
+     coginit(6, StaticDischarge,@Stack6)
+
      MechatronicsForestBackground             'change the background to the mechatronics forest
      Move(Propeller,2,8,x_p,y_p)     'Moves the propeller off the screen
      'Move(laser,1,15,500,500)       'No lasers in the mechatronics forest!
-     bg_x :=250                      'sets coordinates and places big Garner on the screen
-     bg_y :=100
+     bg_x :=20                      'sets coordinates and places big Garner on the screen
+     bg_y :=36
      PlaceBigGarner
-     gd.putstr(15,2,string("Welcome to the Mechatronics Forest!"))  
-     count:=14
-  if x=> 381 AND y == 64 AND C1buttons == %1111_1011      'If the player is standing in a certain spot and hits the down button  
-      easter := true
+     gd.putstr(0,2,string("Welcome to the"))
+     gd.putstr(0,3,string("Mechatronics Forest!"))
+     count := 9
+  if C1buttons == %1111_1011      'If the player is standing in a certain spot and hits the down button  
+    easter := true
          
 '----------------------CHARACTER CODE-------------------------------------
 PUB GarnerText
 'puts garners lines onscreen based on toggle_text method   
   case bgline
     0:
-      gd.putstr(30,30,string("This is Line 1  "))      
+      gd.putstr(10,5,string("Mechatronics IS the future!"))      
     1:
-      gd.putstr(30,30,string("LINE 2          "))
+      gd.putstr(10,5,string("Computers ARE NOT a fad!   "))
     2:
-      gd.putstr(30,30,string("yay we made 3   "))
+      gd.putstr(10,5,string("They count in CIRCLES!     "))
     3:
-      gd.putstr(30,30,string("HOLY FUCK ITWORK"))
+      gd.putstr(10,5,string("Arduino sux hehe           "))
+    4:
+      gd.putstr(10,5,string("I <3 T-Swift! Hear me sing!"))
+    5:
+      gd.putstr(10,5,string("I stay out too late        "))
+    6:
+      gd.putstr(10,5,string("got nothin in my brain     "))
+    7:
+      gd.putstr(10,5,string("Thats what ppl say, mmmhmmm"))
+    8:
+      gd.putstr(10,5,string("Thats what ppl say, mmmhmmm"))
+    9:
+      gd.putstr(10,5,string("Thanks for listening!      "))         
              
 PUB toggle_text
 'toggles garner's lines
@@ -285,7 +324,20 @@ PUB toggle_text
     waitcnt(clkfreq*3+cnt)
     bgline := 3
     waitcnt(clkfreq*3+cnt)
-    
+    if easter
+      bgline := 4
+      waitcnt(clkfreq*3+cnt)
+      bgline := 5
+      waitcnt(clkfreq*3+cnt)
+      bgline := 6
+      waitcnt(clkfreq*3+cnt)
+       bgline := 7
+      waitcnt(clkfreq*3+cnt)
+      bgline := 8
+      waitcnt(clkfreq*3+cnt)
+      bgline := 9
+      easter := false
+      waitcnt(clkfreq*3+cnt)
 PUB UpdateLittleGarner
 'Updates Little Garner Character
 
@@ -293,8 +345,8 @@ PUB UpdateLittleGarner
   Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
   Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
   
-  if lgarner_x == 149 or lgarner_x == 230
-    if lgarner_x == 149
+  if lgarner_x == lgarner_lbound or lgarner_x == lgarner_rbound
+    if lgarner_x == lgarner_lbound
       lGarnerMvmt := 0
       static := true
     if lgarner_dir == 2
@@ -318,18 +370,31 @@ PUB UpdateChomper
   if nu == 1      'If the chomper is moving to the left
     RotateChomper
     Move(RobotHL,1,0,chomp_x,chomp_y-16)
-    Move(RobotHR,1,1,chomp_x-16,chomp_y-16)
-    Move(RobotLL,1,2,chomp_x,chomp_y)
-    Move(RobotLR,1,3,chomp_x-16,chomp_y)
+    Move(RobotHR,1,rhr,chomp_x-16,chomp_y-16)
+    Move(RobotLL,1,rll,chomp_x,chomp_y)
+    Move(RobotLR,1,rlr,chomp_x-16,chomp_y)
   elseif nu == 2      'If the chomper is moving to the right
     RotateChomper
     Move(RobotHL,1,0,chomp_x,chomp_y-16)
-    Move(RobotHR,1,1,chomp_x+16,chomp_y-16)
-    Move(RobotLL,1,2,chomp_x,chomp_y)
-    Move(RobotLR,1,3,chomp_x+16,chomp_y)
+    Move(RobotHR,1,rhr,chomp_x+16,chomp_y-16)
+    Move(RobotLL,1,rll,chomp_x,chomp_y)
+    Move(RobotLR,1,rlr,chomp_x+16,chomp_y)
     
   if chomp_x ==382 OR chomp_x ==178   'If the chomper hits a wall
     RotateChomper
+
+PUB animate_chomper
+
+  repeat
+    rhr := 4
+    rll := 5
+    rlr := 6
+    waitcnt(clkfreq/10 + cnt)
+    rhr := 1
+    rll := 2
+    rlr := 3
+    waitcnt(clkfreq/10 + cnt)
+      
     
 PUB PlaceBigGarner 'Allows big Garner to easily change position
   Move(BG1,3,0,bg_x,bg_y)
@@ -402,7 +467,7 @@ PUB CheckCollisionChomper(SpriteT, SpriteB)
 
 PUB Death
   x := 200
-  y := y_min 
+  y := deathy 
   Flash(5)
   lives := lives-1
   Move(0,0,player_top,x,y-16)
@@ -462,7 +527,7 @@ PUB SelectCharacter | i, j, k
 
   repeat until (C1buttons == %0111_1111)                'repeats until A button pushed
     UpdateAll
-    
+                          
     'Display Text
     gd.putstr(15,0,string("  Select a Character!"))
     gd.putstr(15,1,string("Use Up / Down to Toggle."))
@@ -525,11 +590,11 @@ PUB ChomperLaser
 PUB LittleGarnerMotion
 'Controls Little Garner Motion, designed to be run on seperate cog
   repeat
-    repeat until lgarner_x => 230
+    repeat until lgarner_x => lgarner_rbound
       lgarner_dir := 1
       lgarner_x := lgarner_x+3
       waitcnt(clkfreq/11+cnt)
-    repeat until lgarner_x =< 149
+    repeat until lgarner_x =< lgarner_lbound
       lgarner_dir := 2  
       lgarner_x := lgarner_x-3
       waitcnt(clkfreq/11+cnt)
@@ -552,7 +617,7 @@ PUB StaticDischarge
          
 
 PUB animate_player
-  'Implements animation for player character legs, designed to be run on seperate cog
+  'Implements animation for player character legs/ jumping, designed to be run on seperate cog
   repeat
     if BPlayer == feet and mvmt
       BPlayer := Alt2Player
@@ -561,24 +626,13 @@ PUB animate_player
     if BPlayer == Alt2Player
       BPlayer := feet
       waitcnt(clkfreq/10+cnt)
-      
-PUB player_jump
-  'Implements jumping for a player character, designed to be run on seperate cog
-  repeat
+
     if jump
       repeat 36
         y := y-2
         waitcnt(clkfreq/100 + cnt)
       jump := 0
-  
-PUB propeller_fall 'animates falling propeller in mechatronics forest
 
-  repeat
-    y_p := gravity(x_p,y_p)
-    waitcnt(clkfreq/100 + cnt)
-    if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
-      waitcnt(clkfreq*3 + cnt)
-      y_p := 0         
 
 '------------------------------------------ DRAW BACKGROUND --------------------------------------------
 PUB Background | i,j,k,spacing                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
