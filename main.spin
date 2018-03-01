@@ -175,7 +175,7 @@ PUB RunGame
           x_p := 260
           y_p :=y_p-40
         7:
-          x_p := 5
+          x_p := 200
           y_p :=y_p-40
         10:
           x_p := 10
