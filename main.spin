@@ -71,97 +71,83 @@ VAR
   long deathy                                                                   'Y coordinate of where the player respawns when losing a life
                   
 PUB Main 
-  gd.start(7)                                                       'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
-  dira[clk..latch]~~                                                'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
+  gd.start(7)                                                                   'Starts Gameduino assembly program on Cog 7 and resets the Gamduino's previous RAM values
+  dira[clk..latch]~~                                                            'Sets I/O directions of NES Controllers' clock and latch interface pins to be outputs
   
   repeat
-    Intro              'Intro Sequence
-    SelectCharacter    'Character Selection                                                            
-    Background         'Background Drawing
-    RunGame            'Gameplay                                             
-    Winning            'Win Conditions
-  
-PUB Intro
-  'bg_x :=200
-  'bg_y :=200
-  'PlaceBigGarner
-  'gd.putstr(15,10,string("Story")) 
-  'waitcnt(clkfreq*5 + cnt)
-  'bg_x :=300
-  'bg_y :=300
-  'PlaceBigGarner 'Move out of the way.
+    SelectCharacter                                                             'Character Selection -- runs before game starts, allows player to choose character                                                            
+    Background                                                                  'Initial "Mechatronics lab" Background Drawing
+    RunGame                                                                     'Gameplay, should always be running on Cog 0                                             
+    Replay                                                                      'Win Conditions, should reset the game if the player wins or loses
 
 PUB RunGame
 
-  lives := 6 'initialize lives
-
-  'Player Initial Position
-  x := 200
-  y := 150   
-  y_min :=266
-
-  'Propeller Initial Position
-  x_p :=5
-  y_p :=250
-
-  deathy := y_min
-
-  Move(Propeller,2,8,x_p,y_p)   'Initial position of the propeller hat 
-  count:= 1 'Propeller is on level 1
+  lives := 6                                                                    'initialize lives to 6
   
-  chomp_x :=200
-  chomp_y :=185
-  laser_x :=385
-  laser_y :=chomp_y-16
-  nu := 2 'Initialize Chomper
+  x := 200                                                                      'Player Initial x Position, middle of the screen                           
+  y := 150                                                                      'Player Initial y Position 
+  y_min :=266                                                                   'Top of the base level, ground
 
-  'initialize little Garner
-  lgarner_x := 200
-  lgarner_y := 25
-  lgarner_rbound := 230
-  lgarner_lbound := 149     
-  lgarner_dir := 1
-  alt1LGarnerLegs := 4
-  alt2LGarnerLegs := 5                             
+  x_p :=5                                                                       'Propeller Initial x Position, Level 1 (count =1)
+  y_p :=250                                                                     'Propeller Initial y Position, Level 1
+
+  deathy := y_min                                                               'Player respawns at the bottom level
+
+  Move(Propeller,2,8,x_p,y_p)                                                   'Move the propeller hat to its initial position on Level 1 
+  count:= 1                                                                     'Propeller is on level 1
+  
+  chomp_x :=200                                                                 'Place the chomper in the middle of his platform (x coordinate)  
+  chomp_y :=185                                                                 'Place the chomper standing on his platform (y coordinate)
+  laser_x :=385                                                                 'Place the laser by the chomper's head (x-coordinate)
+  laser_y :=chomp_y-16                                                          'Place the laser by the chomper's head (y-coordinate)
+  nu := 2                                                                       'Initialize Chomper to move to the right
+
+  lgarner_x := 200                                                              'Place Little Garner in the middle of his platform (x coordinate)
+  lgarner_y := 25                                                               'Place Little Garner standing on his platform (y coordinate)
+  lgarner_rbound := 230                                                         'Limit the right motion to the end of Little Garner's platform, otherwise he would be floating
+  lgarner_lbound := 149                                                         'Limit the left motion to the end of Little Garner's platform
+  lgarner_dir := 1                                                              'Little Garner is initially moving to the right
+  alt1LGarnerLegs := 4                                                          'Initiallize the sprite number of Little Garner's alternative legs
+  alt2LGarnerLegs := 5                                                          'Initiallize the sprite number of Little Garner's alternative legs
   
   'Player "falls" downscreen at beginning of game
-  repeat until y == y_min
-    waitcnt(clkfreq/75 + cnt)
-    y := y +1
-    Move(0,0,TPlayer,x,y-16)
-    Move(1,0,BPlayer,x,y)
+  repeat until y == y_min                                                       'Stop when the player is on the groun level
+    waitcnt(clkfreq/75 + cnt)                                                   'Pause so the player doesn't just appear on the ground instead of "falling"
+    y := y +1                                                                   'Increment the y-coordinate by 1, so the player moves down the screen 
+    Move(0,0,TPlayer,x,y-16)                                                    'Move the top sprite of the player
+    Move(1,0,BPlayer,x,y)                                                       'Move the player's bottom sprite
 
   'Intialize Flags
-  mvmt := false
-  jump := false
-  static := false
-  easter := false
-  bgline := -1
+  mvmt := false                                                                 'Player is not moving
+  jump := false                                                                 'Player is not jumping
+  static := false                                                               'Static discharge is not active (i.e. Little Garner is not at the left edge of his platform)
+  easter := false                                                               'The player has not activated the easter egg
+  bgline := -1                                                                  'No text being displayed
  
-  rhr := 1
-  rll := 2
-  rlr := 3
+  rhr := 1                                                                      'Initiallize the first sprite value for Chomper's alternative legs
+  rll := 2                                                                      'Initiallize the second sprite value for Chomper's alternative legs 
+  rlr := 3                                                                      'Initiallize the third sprite value for Chomper's alternative mouth 
   
-  coginit(1, animate_player,@Stack1)   'Run player animation on cog 1
-  coginit(2, animate_chomper,@Stack2)      'Run player jumping on cog 2
-  coginit(3, ChomperMotion,@Stack3)    'Run robot chomper on cog 3
-  coginit(4, ChomperLaser,@Stack4)     'Run the robot's laser beam on cog 4
-  coginit(5, LittleGarnerMotion,@Stack5) 'Run little garner on cog 5.
-  coginit(6, StaticDischarge,@Stack6)
+  coginit(1, animate_player,@Stack1)                                            'Run player animation on cog 1, allows player to jump and move left and right
+  coginit(2, animate_chomper,@Stack2)                                           'Run animate chomper on cog 2, makes chomper look like he is walking/running and opens and closes his mouth
+  coginit(3, ChomperMotion,@Stack3)                                             'Run robot chomper's motion on cog 3. He turns around when he reaches the edge of his platform
+  coginit(4, ChomperLaser,@Stack4)                                              'Run the robot's laser beam on cog 4, should come out Chomper's eyes and be moving in the correct direction.
+  coginit(5, LittleGarnerMotion,@Stack5)                                        'Run little garner's motion on cog 5. He should turn around when he reaches a boundary.
+  coginit(6, StaticDischarge,@Stack6)                                           'Run static discharge when the x-ccordinate of Little Garner is at lgarner_lbound
 
-  repeat until (count => 15 or lives =< 0)                            'Main loop
-    UpdateAll
-    gd.putstr(0,0,string("Health"))
-    gd.putstr(7,0,string("      "))  'Actual health bar (For some reason doesn't show up unless this is here)
-    CheckLives   
+  repeat until (count => 15 or lives =< 0)                                      'Main loop, repeats until the game is restarted.
+    UpdateAll                                                                   'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh 
+    gd.putstr(0,0,string("Health"))                                             'Displays the word "health" on the screen right before the health bar.
+    gd.putstr(7,0,string("      "))                                             'Where the health bar will display. Length of 6 characters, since lives = 6.
+    CheckLives                                                                  'Checks whether the player has lost any lives and updates the health bar to the correct length if they have
     
     'Checks collisions between propeller hat and player, repositions propeller up one level       
     if CheckCollision(player_bottom,Propeller) or CheckCollision(player_top,Propeller)
-      count:=count+1
+      count:=count+1                                                            'The propeller is on the next level (count represents the level of the propeller chips, subtract one for number of propeller chips the player has collected)
       case count
-        2:
-          x_p := 215
-          y_p :=y_p-40
+        2:                                                                      'Each of these represents a new position for each level. The hat is repositioned up 40 pixels which will get it in the middle of each level.
+          x_p := 215                                                            'The x-coordinate could not have been replaced with a random value without the risk of the propeller ending up in the air instead of on a platform, so the values are not ranomized and only work for one round.
+          y_p :=y_p-40                                                          'i.e. when you replay, the propeller will always go back to the same position on each level.
         3:
           x_p := 350
           y_p :=y_p-40
@@ -177,7 +163,7 @@ PUB RunGame
         7:
           x_p := 200
           y_p :=y_p-40
-        10:
+        10:                                                                     'After count = 7, the player is in the mechatronics forest, so the rest are positioned in the trees instead of on platforms. 
           x_p := 10
           y_p := 125
         11:
@@ -190,70 +176,70 @@ PUB RunGame
           x_p := 250
           y_p := 150
         14:
-          x_p := 170
+          x_p := 170                                                            'Once the player collects the last propeller, they win the game.
           y_p := 175
-
-   'Checks collisions between Chomper and Player, repositions player at beginning, docs a life    
-    CheckCollisionChomper(player_top,player_bottom)
-
-    'Checks collisions between Laser and Player, repositions player at beginning, docs a life
-    if CheckCollision(player_bottom,Laser) or CheckCollision(player_top,Laser)
-      Death
+     
+    if CheckCollisionChomper(player_top,player_bottom)                          'Checks collisions between Chomper and Player, repositions player at beginning, docs a life 
+      Death                                                                     'Death repositions the player at the bottom of the screen and docs a life, also calls the flash function so the player knows they died
+      
+    if CheckCollision(player_bottom,Laser) or CheckCollision(player_top,Laser)  'Checks collisions between Laser and Player, repositions player at beginning, docs a life
+      Death                                                                     'Death repositions the player at the bottom of the screen and docs a life, also calls the flash function so the player knows they died
 
     'Checks collisions between Little Garner and Player, repositions player at beginning, docs a life
     if CheckCollision(player_top,LGarnerLegs) or CheckCollision(player_top,LGarnerHead) or CheckCollision(player_bottom,LGarnerLegs) or CheckCollision(player_bottom,LGarnerHead)
-      Death
-      lives :=lives-1
+      Death                                                                     'Death repositions the player at the bottom of the screen and docs a life, also calls the flash function so the player knows they died      
+      lives :=lives-1                                                           'Docs an extra life because the player ran into Garner
 
     'Checks collisions between Static Discharge and Player, repositions player at beginning, docs a life
     if CheckCollision(player_bottom,static_discharge_3) or CheckCollision(player_top,static_discharge_3)
-      Death
+      Death                                                                     'Death repositions the player at the bottom of the screen and docs a life, also calls the flash function so the player knows they died
 
-    case C1buttons   'Controller Input / Character Control
-      %1111_1101 :   'Left Button
-        x:=x-1
-        player_rot:=2
-        mvmt := true                                            
-      %1111_1110 :   'Right Button                                             
-        x:=x+1     
-        player_rot:=0
-        mvmt := true 
-      %1111_0111 :    'Up Button
+    case C1buttons                                                              'Controller Input / Character Control
+      %1111_1101 :                                                              'If the Left Button is pressed
+        x:=x-1                                                                  'Move the player one pixel to the left
+        player_rot:=2                                                           'Rotate so the player is facing left
+        mvmt := true                                                            'Player is moving
+      %1111_1110 :                                                              'If Right Button is pressed                                             
+        x:=x+1                                                                  'Move the player one pixel to the right
+        player_rot:=0                                                           'Rotate so the player is facing right
+        mvmt := true                                                            'Player is moving
+      %1111_0111 :                                                              'If Up Button is pressed
+        'Checks whether the player is standing on solid ground. Has to check both backgrounds (mechatronics lab and forest)
         if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
-          jump := true
-      %1111_0101 :    'Up and to the Left
+          jump := true                                                          'Increments player's y value                                                                               '
+      %1111_0101 :                                                              'If Up and Left buttons are pressed
+        'Checks whether the player is standing on solid ground. Has to check both backgrounds (mechatronics lab and forest)
         if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
-          jump := true
-        player_rot:=2    
-        x := x-1
-        mvmt := true     
-      %1111_0110 :       'Up and to the Right
+          jump := true                                                          'Increments player's y value
+        player_rot:=2                                                           'Rotates the player to the left
+        x := x-1                                                                'Moves the player to the left
+        mvmt := true                                                            'Player is moving (makes legs move)
+      %1111_0110 :                                                              'If Up and Right button are pressed        
+        'Checks whether the player is standing on solid ground. Has to check both backgrounds (mechatronics lab and forest)
         if (GetCharacterXY(x+8,y+16)== 26) or ( GetCharacterXY(x+8,y+16)== 22) or ( GetCharacterXY(x+8,y+16)== 18)  or ( GetCharacterXY(x+8,y+16)== 19)
-          jump := true
-        x := x+1
-        player_rot:=0
-        mvmt := 1
-      '%1111_1011 :   'Down Button                                              
-        'y:=y+1
+          jump := true                                                          'Increments player's y value
+        x := x+1                                                                'Moves the player to the right
+        player_rot:=0                                                           'Rotates the player to the right
+        mvmt := 1                                                               'Player is moving (makes legs move)
   
-    y := gravity(x,y)   'Check to see if player is standing on solid ground
-    x := xboundaries(x) 'Check to see if player is hitting edge of visible screen
+    y := gravity(x,y)                                                           'Check to see if player is standing on solid ground, if not chages y coordinate
+    x := xboundaries(x)                                                         'Check to see if player is hitting edge of visible screen
 
    'Update Player Character
-    Rotate(0,player_rot) 
-    Rotate(1,player_rot) 
-    Move(player_top,0,TPlayer,x,y-16)
-    Move(player_bottom,0,BPlayer,x,y)
+    Rotate(player_top,player_rot)                                               'Rotates the player's top in the direction they are facing 
+    Rotate(player_bottom,player_rot)                                            'Rotates the player's bottom in the direction they are facing
+    Move(player_top,0,TPlayer,x,y-16)                                           'Updates and moves the player's top to its correct position
+    Move(player_bottom,0,BPlayer,x,y)                                           'Updates and moves the player's bottom to its correct position
 
-    Move(laser,1,15,laser_x,laser_y)
-    Move(Propeller,2,8,x_p,y_p) 
+    Move(laser,1,15,laser_x,laser_y)                                            'Updates and moves the lasers to its correct position
+    Move(Propeller,2,8,x_p,y_p)                                                 'Updates and moves the propeller to its correct position
 
-    UpdateChomper
-    UpdateLittleGarner
-    update_static
-    PlaceBigGarner
-    MechatronicsForest                         'Checks if drawing mechatronics forest
-    GarnerText
+    UpdateChomper                                                               'Updates and moves all of chomper's sprites to their correct positions
+    UpdateLittleGarner                                                          'Updates and moves all of Little Garner's sprites to their correct positions
+    update_static                                                               'Updates and moves all of Garner's Static Discharge sprites to their correct positions
+    PlaceBigGarner                                                              'Updates and moves all of Big Garner's sprites to their correct positions
+    MechatronicsForest                                                          'Checks if player has reached the top level and collected the propeller hat, if so runs mechatronics forest
+    GarnerText                                                                  'Updates Garner's text
 
 PUB MechatronicsForest
   if count == 8       
@@ -437,7 +423,7 @@ PUB xboundaries(xcord)
     xcord := 1
   return xcord
 
-PUB Winning 
+PUB Replay 
   'Displayed if win conditions satisfied
   cogstop(1)
   cogstop(2)
@@ -446,7 +432,7 @@ PUB Winning
   cogstop(5)
   cogstop(6)
   repeat until (C1buttons == %0111_1111)  'Runs until A button pressed
-    UpdateAll
+    UpdateAll                                    'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
     if lives =< 0
       gd.putstr(22,0,string("YOU LOST!"))
       gd.putstr(22,1,string("Press A to Play Again."))
@@ -520,10 +506,10 @@ PUB SelectCharacter | i, j, k
   TPlayer := 0
   BPlayer := 1
 
-  UpdateAll
+  UpdateAll      'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
 
   repeat until (C1buttons == %0111_1111)                'repeats until A button pushed
-    UpdateAll
+    UpdateAll                                           'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
                           
     'Display Text
     gd.putstr(15,0,string("  Select a Character!"))
