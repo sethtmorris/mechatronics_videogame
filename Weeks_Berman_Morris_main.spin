@@ -1,7 +1,4 @@
-'Names
-
-'TO DO 02/26 : (1) finish mechatronics forest + all animation / mechanics concerning; (2) debug positions of sprites during selection; (3) add falling projectile; (4) animate NPC legs
-'BIG CAVEAT TO ALL FURTHER WORK : we are OUT. OF. COGS. no animation / further movement can take place without freeing up a cog or two ... may make NPC leg animation impossible
+'Rachel Weeks and Ryan Berman
 
 CON
   _xinfreq=6_250_000
