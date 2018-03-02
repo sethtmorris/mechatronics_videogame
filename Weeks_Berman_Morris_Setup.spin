@@ -1,5 +1,5 @@
-''Gamduino_Setup_2018
-''by Gavin T. Garner
+''Gamduino_Setup
+''Rachel Weeks and Ryan Berman
 
 ''Run this program whenever you first turn the power to the Gameduino on (i.e. when you plug in the USB cable).
 ''Set the LoadBackground and LoadSprites methods to load the Gamduino's RAM with the data for the
