@@ -1,4 +1,6 @@
 'Rachel Weeks and Ryan Berman
+'MAE 4710
+'03/02/2018
 
 CON
   _xinfreq=6_250_000
