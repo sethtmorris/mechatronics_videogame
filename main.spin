@@ -241,42 +241,42 @@ PUB RunGame
     MechatronicsForest                                                          'Checks if player has reached the top level and collected the propeller hat, if so runs mechatronics forest
     GarnerText                                                                  'Updates Garner's text
 
-PUB MechatronicsForest
-  if count == 8       
-     'Moves the propeller, laser and chomper off of the screen
-     chomp_x := off
+PUB MechatronicsForest                                                          'Method that runs, updates, and draws the mechatronics forest
+  if count == 8                                                                 'If the player has collected the last propeller in the mechatronics lab background
+
+     chomp_x := off                                                             'Moves laser and chomper off of the screen
      chomp_y := off
      laser_x :=off 
      laser_y :=off
-     x_p := 50
-     y_p := 200     
-     lgarner_y := y_min - 8
-     lgarner_x := 150
-     lgarner_rbound := 399
-     lgarner_lbound := 3
-     deathy := 75         
-     cogstop(3)
-     cogstop(4)     
-     cogstop(6)
-     coginit(3,MoveMouth,@Stack3)
-     coginit(4,toggle_text,@Stack4)   
+     x_p := 50                                                                  'Place the propeller at the first x-coordinate in the mechatronics forest
+     y_p := 200                                                                 'Place the propeller at the first y-coordinate in the mechatronics forest
+         
+     lgarner_y := y_min - 8                                                     'Place little garner at the correct y-coordinate
+     lgarner_x := 150                                                           'Place little garner at the correct x-coordinate 
+     lgarner_rbound := 399                                                      'Sets little garner's right bound at the correct x-coordinate
+     lgarner_lbound := 3                                                        'Sets little garner's left bound at the correct x-coordinate 
+     deathy := 75                                                               'Sets y-coordinate for respawning after death in the mechatronics forest 
 
-     MechatronicsForestBackground             'change the background to the mechatronics forest
-     Move(Propeller,2,8,x_p,y_p)     'Moves the propeller off the screen
-     'Move(laser,1,15,500,500)       'No lasers in the mechatronics forest!
-     bg_x :=20                      'sets coordinates and places big Garner on the screen
+     cogstop(3)                                                                 'Stop cog 3 from running chomper motion
+     cogstop(4)                                                                 'Stop cog 4 from running chomper's laser motion
+     cogstop(6)                                                                 'Stop cog 6 from running Little Garner's static discharge
+     coginit(3,MoveMouth,@Stack3)                                               'Starts big Garner's mouth moving
+     coginit(4,toggle_text,@Stack4)                                             'Allows Garner to say different things (there is a waitcnt between each text being shown)
+
+     MechatronicsForestBackground                                               'Changes the background to the mechatronics forest
+     Move(Propeller,2,8,x_p,y_p)                                                'Moves the propeller to the updated x and y coordinates for the first postion
+     bg_x :=20                                                                  'Sets coordinates and places big Garner on the screen
      bg_y :=36
-     PlaceBigGarner
-     gd.putstr(0,2,string("Welcome to the"))
+     PlaceBigGarner                                                             'Places all of Big Garner's sprites on the screen at the set coordinates
+     gd.putstr(0,2,string("Welcome to the"))                                    'Welcomes the user to the mechatronics forest
      gd.putstr(0,3,string("Mechatronics Forest!"))
-     count := 9
-  if C1buttons == %1111_1011      'If the player is standing in a certain spot and hits the down button  
-    easter := true
+     count := 9                                                                 'Allows the player to start collecting propellers
+  if C1buttons == %1111_1011                                                    'If the player hits the down button ("Arduino sux hehe" has to be on the screen too)  
+    easter := true                                                              'The easter egg is activated
          
 '----------------------CHARACTER CODE-------------------------------------
-PUB GarnerText
-'puts garners lines onscreen based on toggle_text method   
-  case bgline
+PUB GarnerText                                                                  'Puts garners lines onscreen based on toggle_text method   
+  case bgline                                                                   'The line that is supposed to be on the screen (updated on cog 4 with toggle text)
     0:
       gd.putstr(10,5,string("Mechatronics IS the future!"))      
     1:
@@ -286,7 +286,7 @@ PUB GarnerText
     3:
       gd.putstr(10,5,string("Arduino sux hehe           "))
     4:
-      gd.putstr(10,5,string("I <3 T-Swift! Hear me sing!"))
+      gd.putstr(10,5,string("I <3 T-Swift! Hear me sing!"))                     'The lines below 3 will only play when easter egg is activated during line 3.
     5:
       gd.putstr(10,5,string("I stay out too late        "))
     6:
@@ -298,89 +298,86 @@ PUB GarnerText
     9:
       gd.putstr(10,5,string("Thanks for listening!      "))         
              
-PUB toggle_text
-'toggles garner's lines
-  repeat
-    bgline := 0
-    waitcnt(clkfreq*3+cnt)
+PUB toggle_text                                                                 'Toggles garner's lines, waits between each line
+  repeat                                                                        'Runs forever when activated on cog 4
+    bgline := 0                                                                 'Initally sets line 0 to run
+    waitcnt(clkfreq*3+cnt)                                                      'Waits 3 seconds before incrementing line to the next
     bgline := 1
-    waitcnt(clkfreq*3+cnt)
+    waitcnt(clkfreq*3+cnt)                                                      'Waits 3 seconds before incrementing line to the next
     bgline := 2
-    waitcnt(clkfreq*3+cnt)
+    waitcnt(clkfreq*3+cnt)                                                      'Waits 3 seconds before incrementing line to the next
     bgline := 3
-    waitcnt(clkfreq*3+cnt)
-    if easter
-      bgline := 4
-      waitcnt(clkfreq*3+cnt)
+    waitcnt(clkfreq*3+cnt)                                                      'Waits 3 seconds before incrementing line to the next
+    if easter                                                                   'If the easter egg is activated (i.e. the player hits the down button during line 3)
+      bgline := 4                                                               'The player must activate the easter egg again for it to run more than once.
+      waitcnt(clkfreq*3+cnt)                                                    'Waits 3 seconds before incrementing line to the next
       bgline := 5
-      waitcnt(clkfreq*3+cnt)
+      waitcnt(clkfreq*3+cnt)                                                    'Waits 3 seconds before incrementing line to the next
       bgline := 6
-      waitcnt(clkfreq*3+cnt)
+      waitcnt(clkfreq*3+cnt)                                                    'Waits 3 seconds before incrementing line to the next
        bgline := 7
-      waitcnt(clkfreq*3+cnt)
+      waitcnt(clkfreq*3+cnt)                                                    'Waits 3 seconds before incrementing line to the next
       bgline := 8
-      waitcnt(clkfreq*3+cnt)
+      waitcnt(clkfreq*3+cnt)                                                    'Waits 3 seconds before incrementing line to the next
       bgline := 9
-      easter := false
-      waitcnt(clkfreq*3+cnt)
-PUB UpdateLittleGarner
-'Updates Little Garner Character
-
-  Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)
-  Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)
+      easter := false                                                           'Resets easter egg to false
+      waitcnt(clkfreq*3+cnt)                                                    'Waits 3 seconds before incrementing line to the next
+                                                                                
+PUB UpdateLittleGarner                                                          'Updates Little Garner Character
+  Move(LGarnerHead, 2, 0, lgarner_x, lgarner_y-16)                              'Moves Garners head to the x and y coordinates
+  Move(LGarnerLegs, 2, 1, lgarner_x, lgarner_y)                                 'Moves Garners legs to the x and y coordinates
   
-  if lgarner_x == lgarner_lbound or lgarner_x == lgarner_rbound
-    if lgarner_x == lgarner_lbound
-      static := true
-    if lgarner_dir == 2
-      Rotate(LGarnerHead, 0)
+  if lgarner_x == lgarner_lbound or lgarner_x == lgarner_rbound                 'If the Little Garner has reached the bounds
+    if lgarner_x == lgarner_lbound                                              'If Little Garner is at the left bound
+      static := true                                                            'Turns on static discharge
+    if lgarner_dir == 2                                                         'If little garner is going to the left
+      Rotate(LGarnerHead, 0)                                                    'Rotate the head and legs sprites so that they are facing the correct direction (left)
       Rotate(LGarnerLegs, 0)
-    elseif lgarner_dir == 1
-      Rotate(LGarnerHead, 2)
+    elseif lgarner_dir == 1                                                     'If little Garner is going right
+      Rotate(LGarnerHead, 2)                                                    'Rotate the head and leg sprites so that they are facing right
       Rotate(LGarnerLegs, 2)   
 
-PUB update_static
-
-  Move(static_discharge_1, 2, 12, sdx1, sdy1)
-  Rotate(static_discharge_1,2)
-  Move(static_discharge_2, 2, 14, sdx2, sdy2)
-  Rotate(static_discharge_2,2)
-  Move(static_discharge_3, 2, 15, sdx3, sdy3)
-  Rotate(static_discharge_3,2)
+PUB update_static                                                               'Updates Garner's static discharge
+                                                                                'Rotates the static discharge sprite so that its facing to the left
+  Move(static_discharge_1, 2, 12, sdx1, sdy1)                                   'Moves the first of the static discharge sprites to the correct position (either on the screen or off)
+  Rotate(static_discharge_1,2)                                                  'Rotates the static discharge sprite so that its facing to the left
+  Move(static_discharge_2, 2, 14, sdx2, sdy2)                                   'Moves the second of the static discharge sprites to the correct position (either on the screen or off)
+  Rotate(static_discharge_2,2)                                                  'Rotates the static discharge sprite so that its facing to the left
+  Move(static_discharge_3, 2, 15, sdx3, sdy3)                                   'Moves the third of the static discharge sprites to the correct position (either on the screen or off)
+  Rotate(static_discharge_3,2)                                                  'Rotates the static discharge sprite so that its facing to the left
 
 PUB UpdateChomper
 
-  if nu == 1      'If the chomper is moving to the left
-    RotateChomper
-    Move(RobotHL,1,0,chomp_x,chomp_y-16)
+  if nu == 1                                                                    'If the chomper is moving to the left
+    RotateChomper                                                               'Rotate chomper to the left
+    Move(RobotHL,1,0,chomp_x,chomp_y-16)                                        'Updates all of chomper's sprites
     Move(RobotHR,1,rhr,chomp_x-16,chomp_y-16)
     Move(RobotLL,1,rll,chomp_x,chomp_y)
     Move(RobotLR,1,rlr,chomp_x-16,chomp_y)
-  elseif nu == 2      'If the chomper is moving to the right
-    RotateChomper
-    Move(RobotHL,1,0,chomp_x,chomp_y-16)
+  elseif nu == 2                                                                'If the chomper is moving to the right
+    RotateChomper                                                               'Rotate chomper to the right
+    Move(RobotHL,1,0,chomp_x,chomp_y-16)                                        'Updates all of chomper's sprites
     Move(RobotHR,1,rhr,chomp_x+16,chomp_y-16)
     Move(RobotLL,1,rll,chomp_x,chomp_y)
     Move(RobotLR,1,rlr,chomp_x+16,chomp_y)
     
-  if chomp_x ==382 OR chomp_x ==178   'If the chomper hits a wall
-    RotateChomper
+  if chomp_x ==382 OR chomp_x ==178                                             'If the chomper hits a wall
+    RotateChomper                                                               'Rotates all of the chomper's sprites so that they are facing the correct direction (depends on value of nu)
 
-PUB animate_chomper
-
+PUB animate_chomper                                                             'Changes which sprites chompers legs and mouth are to make it seem like he is running and "chomping"
   repeat
-    rhr := 4
-    rll := 5
-    rlr := 6
-    waitcnt(clkfreq/10 + cnt)
-    rhr := 1
-    rll := 2
-    rlr := 3
-    waitcnt(clkfreq/10 + cnt)
+    rhr := 4                                                                    'Changes the chompers mouth to open
+    rll := 5                                                                    'Changes the chompers legs to running
+    rlr := 6                                                                    'Changes the chompers legs to running 
+    waitcnt(clkfreq/10 + cnt)                                                   'Wait for 1/10th of a second before changing the sprites back to the original
+    rhr := 1                                                                    'Changes the chompers mouth to closed
+    rll := 2                                                                    'Changes the chompers legs to running 
+    rlr := 3                                                                    'Changes the chompers legs to running 
+    waitcnt(clkfreq/10 + cnt)                                                   'Wait for 1/10th of a second
       
     
-PUB PlaceBigGarner 'Allows big Garner to easily change position
-  Move(BG1,3,0,bg_x,bg_y)
+PUB PlaceBigGarner                                                              'Allows big Garner to easily change position
+  Move(BG1,3,0,bg_x,bg_y)                                                       'Places all 16 of Big Garner's sprites based on the top left being 0,0
   Move(BG2,3,1,bg_x+16,bg_y)
   Move(BG3,3,2,bg_x+32,bg_y)      
   Move(BG4,3,3,bg_x,bg_y+16)      
@@ -396,14 +393,14 @@ PUB PlaceBigGarner 'Allows big Garner to easily change position
   Move(BG14,3,13,bg_x+16,bg_y+64)
   Move(BG15,3,14,bg_x+32,bg_y+64)
   
-PUB RotateChomper 'if n is 1 then the chomper is going left, if n is 2 the chomper is going right
+PUB RotateChomper                                                               'If nu is 1 then the chomper is going left, if nu is 2 the chomper is going right
   if nu == 1
-    Rotate(RobotHR, 2)
-    Rotate(RobotHL, 2)
+    Rotate(RobotHR, 2)                                                          'If chomper is going left
+    Rotate(RobotHL, 2)                                                          'Rotate all chomper's sprites to face left
     Rotate(RobotLL, 2)
     Rotate(RobotLR, 2)                 
-  elseif nu == 2
-    Rotate(RobotHR, 0)
+  elseif nu == 2                                                                'If chomper is going right
+    Rotate(RobotHR, 0)                                                          'Rotate all of chomper's sprites to the right
     Rotate(RobotHL, 0)
     Rotate(RobotLL, 0)
     Rotate(RobotLR, 0)
