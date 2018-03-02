@@ -22,7 +22,7 @@ CON
   Laser=8                                                                       'Chomper's Laser
   player_top = 0                                                                'Chosen player's top sprite
   player_bottom = 1                                                             'Chosen player's bottom sprite
-  BG1  = 9                                                                      'Set of big Garner sprites  
+  BG1  = 9                                                                      'Set of 16 big Garner sprites  
   BG2  =10
   BG3  =11
   BG4  =12
@@ -80,7 +80,7 @@ PUB Main
     RunGame                                                                     'Gameplay, should always be running on Cog 0                                             
     Replay                                                                      'Win Conditions, should reset the game if the player wins or loses
 
-PUB RunGame
+PUB RunGame                                                                     'Program called in main to run the game
 
   lives := 6                                                                    'initialize lives to 6
   
@@ -346,7 +346,7 @@ PUB update_static                                                               
   Move(static_discharge_3, 2, 15, sdx3, sdy3)                                   'Moves the third of the static discharge sprites to the correct position (either on the screen or off)
   Rotate(static_discharge_3,2)                                                  'Rotates the static discharge sprite so that its facing to the left
 
-PUB UpdateChomper
+PUB UpdateChomper                                                               'Updates chomper's sprite locations and directions
 
   if nu == 1                                                                    'If the chomper is moving to the left
     RotateChomper                                                               'Rotate chomper to the left
@@ -406,77 +406,76 @@ PUB RotateChomper                                                               
     Rotate(RobotLR, 0)
   
 '------------------------------LOGIC-------------------------------
-PUB gravity(xcord, ycord)
-  'Implements gravity for a sprite at position xcord, ycord  
+PUB gravity(xcord, ycord)                                                       'Implements gravity for a sprite at position xcord, ycord  
   if (GetCharacterXY(xcord+8,ycord+16)<> 26) and ( GetCharacterXY(xcord+8,ycord+16)<> 22) AND ( GetCharacterXY(xcord+8,ycord+16)<> 18)  AND ( GetCharacterXY(xcord+8,ycord+16)<> 19)
     ycord := ycord+1
   return ycord
    
-PUB xboundaries(xcord)
-  'Implements x-boundaries for a sprite at position xcord 
-  if xcord > 390
+PUB xboundaries(xcord)                                                          'Implements x-boundaries for a sprite at position xcord 
+  if xcord > 390                                                                'If the player is at the right wall
     xcord := 390
-  elseif xcord < 1
+  elseif xcord < 1                                                              'If the player is at the left wall
     xcord := 1
   return xcord
 
-PUB Replay 
-  'Displayed if win conditions satisfied
-  cogstop(1)
+PUB Replay                                                                      'Displayed if replay conditions satisfied
+  cogstop(1)                                                                    'Stop all of the cogs that were running methods
   cogstop(2)
   cogstop(3)
   cogstop(4)
   cogstop(5)
   cogstop(6)
-  repeat until (C1buttons == %0111_1111)  'Runs until A button pressed
-    UpdateAll                                    'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
-    if lives =< 0
+  repeat until (C1buttons == %0111_1111)                                        'Runs until A button pressed
+    UpdateAll                                                                   'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
+    if lives =< 0                                                               'If the player died
       gd.putstr(22,0,string("YOU LOST!"))
       gd.putstr(22,1,string("Press A to Play Again."))
-    else
+    else                                                                        'If the player won
       gd.putstr(22,0,string("YOU WON!!!!"))
       gd.putstr(22,1,string("Press A to Play Again."))
       
-  waitcnt(clkfreq/10 + cnt)
+  waitcnt(clkfreq/10 + cnt)                                                     'Wait 1/10th of a second
 
-PUB CheckCollisionChomper(SpriteT, SpriteB)
+PUB CheckCollisionChomper(SpriteT, SpriteB)                                     'Check collisions with all four of chomper's sprites
+  'Check collisions between bottom sprite and chomper
   if CheckCollision(SpriteB,RobotHL) or CheckCollision(SpriteB,RobotLR) or CheckCollision(SpriteB,RobotLL) or CheckCollision(SpriteB,RobotHR)
-    Death 
+    Death                                                                       'Docs a life, moves player, and flashes player
+  'Check collisions between top sprite and chomper
   if CheckCollision(SpriteT,RobotHL) or CheckCollision(SpriteT,RobotLR) or CheckCollision(SpriteT,RobotLL) or CheckCollision(SpriteT,RobotHR)
-    Death
+    Death                                                                       'Docs a life, moves player, and flashes player
 
-PUB Death
-  x := 200
-  y := deathy 
-  Flash(5)
-  lives := lives-1
-  Move(0,0,player_top,x,y-16)
+PUB Death                                                                       'If the player runs into Little Garner, Static discharge, chomper or his laser
+  x := 200                                                                      'Changes the x-coordinate of the player to the center of the screen
+  y := deathy                                                                   'Changes teh y-coordinate of the player to the ground
+  Flash(5)                                                                      'Flashes the player 5 times so they know they died
+  lives := lives-1                                                              'Decrement lives by one, health bar also moves down by one
+  Move(0,0,player_top,x,y-16)                                                   'Moves the player's top and bottom to the x and y coordinates specified
   Move(1,0,player_bottom,x,y)
 
-PUB CheckLives | i
-    if lives <> 0                     
-      repeat i from 7 to (6+lives)
-        Draw(0,3,i,0)
+PUB CheckLives | i                                                              'Checks whether the player lost a life and redraws the health bar
+    if lives <> 0                                                               'If the player is still alive
+      repeat i from 7 to (6+lives)                                              'Draw a green block from the end of the word health, the length of the number of lives left
+        Draw(0,3,i,0)                                                           'Black under the green health bar was intentionally left
   
-PUB Flash(numFlashes)
-  repeat until numFlashes=<0
-    Move(0,0,TPlayer,x,y-16)
+PUB Flash(numFlashes)                                                           'Flash the character to let the player know they died
+  repeat until numFlashes=<0                                                    'Repeat until player isn't supposed to flash anymore
+    Move(0,0,TPlayer,x,y-16)                                                    'Move the player on the screen
     Move(1,0,BPlayer,x,y)
-    waitcnt(clkfreq/10+cnt)
-    Move(0,0,TPlayer,off,off)
+    waitcnt(clkfreq/10+cnt)                                                     'Wait 1/10th of a second
+    Move(0,0,TPlayer,off,off)                                                   'Move the player off the screen
     Move(1,0,BPlayer,off,off)
-    waitcnt(clkfreq/10+cnt)
-    numFlashes :=numFlashes-1
+    waitcnt(clkfreq/10+cnt)                                                     'Wait for 1/10th of a second
+    numFlashes :=numFlashes-1                                                   'Decrement number of flashes by one
 
-PUB SelectCharacter | i, j, k
-'Character Selection Method, runs before start of main game
+PUB SelectCharacter | i, j, k                                                   'Character Selection Method, runs before start of main game
 
-'Draw Background
-  repeat j from 0 to 37
-    repeat i from 0 to 49
-      Draw(0,0,i,j)
-      
-  x_p := off
+                                                                                'Draw the Background as black
+  repeat j from 0 to 37                                                         'All y pixels
+    repeat i from 0 to 49                                                       'All x pixels
+      Draw(0,0,i,j)                                                             'Black
+          
+                                                                                'All of these remove the sprites from the screen for replaying the game
+  x_p := off                    
   y_p := off
   sdx1 :=off
   sdx2 := off
@@ -489,69 +488,67 @@ PUB SelectCharacter | i, j, k
   lgarner_x := off
   bg_x := off
   bg_y := off
+                                                                                'Moves all of the sprites off the screen
   PlaceBigGarner
   Move(Propeller,2,8,x_p,y_p)
   Move(laser,1,15,laser_x,laser_y)
   UpdateChomper
   UpdateLittleGarner
   update_static    
-  'Location of Sprites During Selection
+                                                                                'Location of Sprites During Selection
   x := 200
   y := 150
-
-  'Initial Sprite Values
+  
   TPlayer := 0
-  BPlayer := 1
+  BPlayer := 1                                                                  'Initial Sprite Top Value
+                                                                                'Initial Sprite Bottom Value
+  UpdateAll                                                                     'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
 
-  UpdateAll      'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
-
-  repeat until (C1buttons == %0111_1111)                'repeats until A button pushed
-    UpdateAll                                           'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
+  repeat until (C1buttons == %0111_1111)                                        'repeats until A button pushed
+    UpdateAll                                                                   'Read both NES controllers' button states, refresh collision data, and wait for video blanking to synch up with the screen's refresh
                           
-    'Display Text
+                                                                                'Display Text
     gd.putstr(15,0,string("  Select a Character!"))
     gd.putstr(15,1,string("Use Up / Down to Toggle."))
     gd.putstr(15,2,string("  Press A to Select."))  
      
-    case C1buttons                'Toggle Sprites Based on User Input
-      %1111_0111 :                'Up Button
-        if TPlayer =< 8           'Keep Sprites within Range                   
+    case C1buttons                                                              'Toggle Sprites Based on User Input
+      %1111_0111 :                                                              'Up Button
+        if TPlayer =< 8                                                         'Keep Sprites within Range                   
           TPlayer := TPlayer + 4
           BPlayer := BPlayer + 4
-      %1111_1011 :                'Down Button
-        if TPlayer => 4           'Keep Sprites within Range
+      %1111_1011 :                                                              'Down Button
+        if TPlayer => 4                                                         'Keep Sprites within Range
           TPlayer := TPlayer - 4
           BPlayer := BPlayer - 4
-    waitcnt(clkfreq/7 + cnt)
-    Move(player_top,0,TPlayer,x,y-16)
-    Move(player_bottom,0,BPlayer,x,y)
+    waitcnt(clkfreq/7 + cnt)                                                    'Waits for 1/7th of a second, for player to toggle button (otherwise will scroll through too quickly)
+    Move(player_top,0,TPlayer,x,y-16)                                           'Moves the top sprite off the screen
+    Move(player_bottom,0,BPlayer,x,y)                                           'Moves the bottom sprite off the screen
 
-  'Set Alternate Sprite Values
-  Alt1Player := TPlayer + 2
+  Alt1Player := TPlayer + 2                                                     'Set Alternate Sprite Values 
   Alt2Player := TPlayer + 3
   feet := BPlayer        
 
 '----------------------------CHARACTER MOTION--------------------------------- 
-PUB MoveMouth
+PUB MoveMouth                                                                   'Changes out sprites values to make big Garner's mouth move to mimic speaking, on a separate cog
   repeat
-   mouth:=10
-   waitcnt(clkfreq/6+cnt)
-   mouth:=15
-   waitcnt(clkfreq/6+cnt)
+   mouth:=10                                                                    'Mouth closed
+   waitcnt(clkfreq/6+cnt)                                                       'Wait for 1/6th of a second
+   mouth:=15                                                                    'Mouth open
+   waitcnt(clkfreq/6+cnt)                                                       'Wait for 1/6th of a second
     
-PUB ChomperMotion                                  'Separate COG
+PUB ChomperMotion                                                               'Initiates chomper's legs moving, on a separate cog
   repeat
-    repeat until chomp_x=>382
-      chomp_x:=chomp_x+2
-      waitcnt(clkfreq/12+cnt)
-      nu := 2
-    repeat until chomp_x=<176
-      chomp_x:=chomp_x-2 
-      waitcnt(clkfreq/12+cnt)
-      nu := 1
+    repeat until chomp_x=>382                                                   'Repeat until chomper reaches the end of his platform on the right
+      chomp_x:=chomp_x+2                                                        'Move chomper two pixels to the right
+      waitcnt(clkfreq/12+cnt)                                                   'Wait for 1/12th of a second
+      nu := 2                                                                   'Chomper is going right
+    repeat until chomp_x=<176                                                   'Repeat until chomper reaches the left end of his platform
+      chomp_x:=chomp_x-2                                                        'Move chomper 2 pixels to the left
+      waitcnt(clkfreq/12+cnt)                                                   'Wait for 1/12th of a second
+      nu := 1                                                                   'Chomper is going left
       
-PUB ChomperLaser
-'Controls the Chomper Laser, designed to be run on seperate cog
+PUB ChomperLaser                                                                'Controls the Chomper Laser, designed to be run on seperate cog
   repeat
     laser_y := 170
     if nu == 1
@@ -567,8 +564,7 @@ PUB ChomperLaser
     laser_x := off
     waitcnt(clkfreq/3+cnt)
        
-PUB LittleGarnerMotion
-'Controls Little Garner Motion, designed to be run on seperate cog
+PUB LittleGarnerMotion                                                          'Controls Little Garner Motion, designed to be run on seperate cog
   repeat
     repeat until lgarner_x => lgarner_rbound
       lgarner_dir := 1
@@ -579,8 +575,7 @@ PUB LittleGarnerMotion
       lgarner_x := lgarner_x-3
       waitcnt(clkfreq/11+cnt)
       
-PUB StaticDischarge
-'Implements Little Garner's Static Discharge, designed to be run on seperate cog
+PUB StaticDischarge                                                             'Implements Little Garner's Static Discharge, designed to be run on seperate cog
   repeat
     if static
       sdx1 := lgarner_x - 16
@@ -596,8 +591,7 @@ PUB StaticDischarge
       static := false
          
 
-PUB animate_player
-  'Implements animation for player character legs/ jumping, designed to be run on seperate cog
+PUB animate_player                                                              'Implements animation for player character legs/ jumping, designed to be run on seperate cog
   repeat
     if BPlayer == feet and mvmt
       BPlayer := Alt2Player
@@ -615,53 +609,47 @@ PUB animate_player
 
 
 '------------------------------------------ DRAW BACKGROUND --------------------------------------------
-PUB Background | i,j,k,spacing                                    'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
-  'This repeat loop just sets the background to black, might not be necessary in the final run but is convenient for testing
-  repeat j from 0 to 37
+PUB Background | i,j,k,spacing                                                  'Note that i,j,k are declared as local variables for use within this method. Local variables are always 32-bit longs.
+  repeat j from 0 to 37                                                         'These repeat loops just sets the background to black at the beginning 
     repeat i from 0 to 49
       Draw(0,1,i,j)
-
-  'Draw the ground
-  j :=35
-  repeat j from 35 to 36
+       
+  j :=35                                                                        'Set the y-coordinate for the ground
+  repeat j from 35 to 36                                                        'Draw the ground    
     repeat i from 0 to 49
         Draw(0,26,i,j)
         Draw(0,26,i,j+1)
         
-  spacing:=5                 'The spacing between the levels
-  'Level one bricks
+  spacing:=5                                                                    'The spacing between the levels
+
   j :=30 
-  repeat i from 5 to 20
+  repeat i from 5 to 20                                                         'Level one bricks 
     Draw(0,22,i,j)
   repeat i from 25 to 30
     Draw(0,22,i,j)   
 
-  'Level two bricks
-  j :=j-spacing 
-  repeat i from 0 to 9
+  j :=j-spacing                                                                 
+  repeat i from 0 to 9                                                          'Level two bricks 
     Draw(0,22,i,j)
   repeat i from 20 to 49
     Draw(0,22,i,j)
-    
-  'Level three bricks
+
   j :=j-spacing  
-  repeat i from 15 to 30
+  repeat i from 15 to 30                                                        'Level three bricks  
     Draw(0,22,i,j)       
   repeat i from 40 to 49
     Draw(0,22,i,j)
-
-   'Level four bricks
+     
   j :=j-spacing  
-  repeat i from 0 to 6
+  repeat i from 0 to 6                                                          'Level four bricks
     Draw(0,22,i,j)
   repeat i from 12 to 18
     Draw(0,22,i,j)
   repeat i from 30 to 40
     Draw(0,22,i,j)
 
-   'Level five bricks
   j :=j-spacing  
-  repeat i from 25 to 35
+  repeat i from 25 to 35                                                        'Level five bricks 
     Draw(0,22,i,j)
   repeat i from 8 to 15
     Draw(0,22,i,j)
@@ -670,68 +658,63 @@ PUB Background | i,j,k,spacing                                    'Note that i,j
   repeat i from 47 to 49
     Draw(0,22,i,j)
 
-   'Level six bricks
   j :=j-spacing  
-  repeat i from 0 to 3
+  repeat i from 0 to 3                                                          'Level six bricks
     Draw(0,22,i,j)
   repeat i from 19 to 30
     Draw(0,22,i,j)
   repeat i from 45 to 49
     Draw(0,22,i,j)
 
-PUB MechatronicsForestBackground | i,j
-'Draw the ground
+PUB MechatronicsForestBackground | i,j                                          'Draw the background for the mechatronics forest
   j :=35
-  repeat j from 35 to 37     'Draw underground
+  repeat j from 35 to 37                                                        'Draw underground as dirt
     repeat i from 0 to 49
         Draw(0,19,i,j)
-  repeat i from 0 to 49      'Draw grassy top ground
+  repeat i from 0 to 49                                                         'Draw grassy top ground
     Draw(0,18,i,34)
-  repeat j from 0 to 33     'Fill in the sky
+  repeat j from 0 to 33                                                         'Fill in the sky blue
     repeat i from 0 to 49
         Draw(0,4,i,j)
 
-  'Draw the sun
-  repeat j from 2 to 5
+                                                                                'Draw the sun, uses yellow pixels
+  repeat j from 2 to 5                                                          'Draws a square
     repeat i from 43 to 46
       Draw(0,5,i,j)
-  Draw(0,5,42,6)    'Bottom Left diagonal ray
+  Draw(0,5,42,6)                                                                'Bottom Left diagonal ray
   Draw(0,5,41,7)
   Draw(0,5,40,8)
 
-  Draw(0,5,45,6)    'Bottom Ray
+  Draw(0,5,45,6)                                                                'Bottom Ray
   Draw(0,5,45,7)
   Draw(0,5,45,8)
   
-  Draw(0,5,45,1)    'Top Ray
+  Draw(0,5,45,1)                                                                'Top Ray
   Draw(0,5,45,0)
   
-  Draw(0,5,47,6)    'Bottom Right diagonal ray
+  Draw(0,5,47,6)                                                                'Bottom Right diagonal ray
   Draw(0,5,48,7)
   Draw(0,5,49,8)
 
-  Draw(0,5,47,1)    'Top Right diagonal ray
+  Draw(0,5,47,1)                                                                'Top Right diagonal ray
   Draw(0,5,48,0)
 
-  Draw(0,5,42,1)    'Top Left diagonal ray
+  Draw(0,5,42,1)                                                                'Top Left diagonal ray
   Draw(0,5,41,0)
 
-  Draw(0,5,47,3)    'Right Ray
+  Draw(0,5,47,3)                                                                'Right Ray
   Draw(0,5,48,3)
   Draw(0,5,49,3) 
 
-  Draw(0,5,42,3)    'Left Ray
+  Draw(0,5,42,3)                                                                'Left Ray
   Draw(0,5,41,3)
   Draw(0,5,40,3)
 
-  'Draws three trees
-  DrawTree(10,34)
+  DrawTree(10,34)                                                               'Draws three trees 
   DrawTree(22,34)
   DrawTree(40,34)                  
 
-
-
-PUB DrawTree(xcoord, ycoord) | i,j
+PUB DrawTree(xcoord, ycoord) | i,j                                              'Draws a tree for the mechatronics forest
   repeat i from xcoord to xcoord+2     'Draw trunk
     repeat j from ycoord to ycoord-17
       Draw(0,19,i,j)
