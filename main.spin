@@ -550,62 +550,62 @@ PUB ChomperMotion                                                               
       
 PUB ChomperLaser                                                                'Controls the Chomper Laser, designed to be run on seperate cog
   repeat
-    laser_y := 170
-    if nu == 1
-      laser_x := chomp_x-16
-      repeat until laser_x =< 0
-        laser_x := laser_x - 10
-        waitcnt(clkfreq/20+cnt)
-    elseif nu == 2
-      laser_x := chomp_x+16
-      repeat until laser_x => 385
-        laser_x := laser_x + 10       
-        waitcnt(clkfreq/20+cnt)
-    laser_x := off
-    waitcnt(clkfreq/3+cnt)
+    laser_y := 170                                                              'Sets the laser's y coordinate to the chomper's eyes
+    if nu == 1                                                                  'If chomper is going left
+      laser_x := chomp_x-16                                                     'Sets the laser to the chomper's x coordinate
+      repeat until laser_x =< 0                                                 'Repeat until the laser is off the screen
+        laser_x := laser_x - 10                                                 'Move the laser 10 pixels
+        waitcnt(clkfreq/20+cnt)                                                 'Wait for 1/20th of a second
+    elseif nu == 2                                                              'If chomper is going right
+      laser_x := chomp_x+16                                                     'Sets the laser to the chomper's x coordinate
+      repeat until laser_x => 385                                               'Repeat until the laser is off the screen
+        laser_x := laser_x + 10                                                 'Moves the laser 10 pixels
+        waitcnt(clkfreq/20+cnt)                                                 'Wait for 1/20th of a second
+    laser_x := off                                                              'Move the laser off the screen
+    waitcnt(clkfreq/3+cnt)                                                      'Wait for 1/3 of a second before the next laser comes back on
        
 PUB LittleGarnerMotion                                                          'Controls Little Garner Motion, designed to be run on seperate cog
   repeat
-    repeat until lgarner_x => lgarner_rbound
-      lgarner_dir := 1
-      lgarner_x := lgarner_x+3
-      waitcnt(clkfreq/11+cnt)
-    repeat until lgarner_x =< lgarner_lbound
-      lgarner_dir := 2  
-      lgarner_x := lgarner_x-3
-      waitcnt(clkfreq/11+cnt)
+    repeat until lgarner_x => lgarner_rbound                                    'Repeat until little garner hits his right bound
+      lgarner_dir := 1                                                          'Direction set to right
+      lgarner_x := lgarner_x+3                                                  'Move right three pixels
+      waitcnt(clkfreq/11+cnt)                                                   'Wait for 1/11th of a second
+    repeat until lgarner_x =< lgarner_lbound                                    'Repeat until little garner hits his left bound
+      lgarner_dir := 2                                                          'Direction set to left
+      lgarner_x := lgarner_x-3                                                  'Move left three pixels
+      waitcnt(clkfreq/11+cnt)                                                   'Wait for 1/11th of a second
       
 PUB StaticDischarge                                                             'Implements Little Garner's Static Discharge, designed to be run on seperate cog
   repeat
-    if static
-      sdx1 := lgarner_x - 16
+    if static                                                                   'If Little Garner is at the left edge of his boundary
+      sdx1 := lgarner_x - 16                                                    'Assigns the correct x and y coordinates of the 3 static discharge sprites
       sdy1 := lgarner_y
       sdx2 := lgarner_x - 32
       sdy2 := lgarner_y
       sdx3 := lgarner_x - 48
       sdy3 := lgarner_y
-      waitcnt(clkfreq/3+cnt)
-      sdx1 := 400
+      waitcnt(clkfreq/3+cnt)                                                    'Wait for 1/3rd of a second
+      sdx1 := 400                                                               'Set the x coordinate of the three static discharge sprites to off of the screen
       sdx2 := 400
       sdx3 := 400
-      static := false
+      static := false                                                           'Reset the static discharge flag
          
 
 PUB animate_player                                                              'Implements animation for player character legs/ jumping, designed to be run on seperate cog
   repeat
-    if BPlayer == feet and mvmt
-      BPlayer := Alt2Player
-      waitcnt(clkfreq/10+cnt)
-      mvmt := 0
-    if BPlayer == Alt2Player
-      BPlayer := feet
-      waitcnt(clkfreq/10+cnt)
+    if BPlayer == feet and mvmt                                                 'If the player is in the game and moving (i.e. not in select character and button is being pressed)
+      BPlayer := Alt2Player                                                     'Bottom of the player is the moving feet
+      waitcnt(clkfreq/10+cnt)                                                   'Wait for 1/10th of a second
+      mvmt := 0                                                                 'Reset the movement flag
+    if BPlayer == Alt2Player                                                    'If the players legs are already moving
+      BPlayer := feet                                                           'Reset to the standing feet
+      waitcnt(clkfreq/10+cnt)                                                   'Wait for 1/10th of a second
 
-    if jump
-      repeat 36
-        y := y-2
-        waitcnt(clkfreq/100 + cnt)
-      jump := 0
+    if jump                                                                     'If the character is on solid ground and the up button is pressed                        
+      repeat 36                                                                 'Repeat 36 times
+        y := y-2                                                                'Move the player up two pixels
+        waitcnt(clkfreq/100 + cnt)                                              'Wait for 1/100th of a second
+      jump := 0                                                                 'Reset the jump flag to not jumping
 
 
 '------------------------------------------ DRAW BACKGROUND --------------------------------------------
@@ -715,58 +715,58 @@ PUB MechatronicsForestBackground | i,j                                          
   DrawTree(40,34)                  
 
 PUB DrawTree(xcoord, ycoord) | i,j                                              'Draws a tree for the mechatronics forest
-  repeat i from xcoord to xcoord+2     'Draw trunk
+  repeat i from xcoord to xcoord+2                                              'Draw trunk
     repeat j from ycoord to ycoord-17
       Draw(0,19,i,j)
       
-  Draw(0,12,xcoord+3,ycoord-3)    'Right diagonal branch
+  Draw(0,12,xcoord+3,ycoord-3)                                                  'Right diagonal branch
   Draw(0,12,xcoord+4,ycoord-5)
   Draw(0,12,xcoord+5,ycoord-6)
   Draw(0,12,xcoord+6,ycoord-7)
   Draw(0,12,xcoord+7,ycoord-8)
   
-  Draw(0,12,xcoord+3,ycoord-6)    'Right diagonal branch
+  Draw(0,12,xcoord+3,ycoord-6)                                                  'Right diagonal branch
   Draw(0,12,xcoord+4,ycoord-7)
   Draw(0,12,xcoord+5,ycoord-8)
   Draw(0,12,xcoord+6,ycoord-9)
   Draw(0,12,xcoord+7 ,ycoord-10)
 
-  Draw(0,12,xcoord+3,ycoord-10)    'Right diagonal branch
+  Draw(0,12,xcoord+3,ycoord-10)                                                 'Right diagonal branch
   Draw(0,12,xcoord+4,ycoord-11)
   Draw(0,12,xcoord+5,ycoord-12)
   Draw(0,12,xcoord+6,ycoord-13)
 
-  Draw(0,12,xcoord+3,ycoord-14)    'Right diagonal branch
+  Draw(0,12,xcoord+3,ycoord-14)                                                 'Right diagonal branch
   Draw(0,12,xcoord+4,ycoord-15)
   Draw(0,12,xcoord+5,ycoord-16)
 
-  Draw(0,12,xcoord+3,ycoord-16)    'Right diagonal branch
+  Draw(0,12,xcoord+3,ycoord-16)                                                 'Right diagonal branch
   Draw(0,12,xcoord+4,ycoord-17) 
   
-  Draw(0,12,xcoord-1,ycoord-3)     'Left diagonal branch
+  Draw(0,12,xcoord-1,ycoord-3)                                                  'Left diagonal branch
   Draw(0,12,xcoord-2,ycoord-4)
   Draw(0,12,xcoord-3,ycoord-5)
   Draw(0,12,xcoord-4,ycoord-6)
   Draw(0,12,xcoord-4,ycoord-7)
 
-  Draw(0,12,xcoord-1,ycoord-8)     'Left diagonal branch
+  Draw(0,12,xcoord-1,ycoord-8)                                                  'Left diagonal branch
   Draw(0,12,xcoord-2,ycoord-9)
   Draw(0,12,xcoord-3,ycoord-10)
   Draw(0,12,xcoord-4,ycoord-11)
   
-  Draw(0,12,xcoord-1,ycoord-12)    'Left diagonal branch
+  Draw(0,12,xcoord-1,ycoord-12)                                                 'Left diagonal branch
   Draw(0,12,xcoord-2,ycoord-13)
   Draw(0,12,xcoord-3,ycoord-14)
   
-  Draw(0,12,xcoord-1,ycoord-15)    'Left diagonal branch
+  Draw(0,12,xcoord-1,ycoord-15)                                                 'Left diagonal branch
   Draw(0,12,xcoord-2,ycoord-16)
   Draw(0,12,xcoord-3,ycoord-17)
 
-  Draw(0,12,xcoord+1,ycoord-18)    'Top Branch
+  Draw(0,12,xcoord+1,ycoord-18)                                                 'Top Branch
   Draw(0,12,xcoord+1,ycoord-19)
   Draw(0,12,xcoord+1,ycoord-20)
-
-  Draw(0,12,xcoord,ycoord-17)      'Top Branch
+                                                        
+  Draw(0,12,xcoord,ycoord-17)                                                   'Top Branch
   Draw(0,12,xcoord-1,ycoord-18)
   Draw(0,12,xcoord+2,ycoord-17)
   Draw(0,12,xcoord+3,ycoord-18)
